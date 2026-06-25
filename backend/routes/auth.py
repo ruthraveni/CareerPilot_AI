@@ -34,6 +34,12 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         )
     return user_helper(user)
 
+from fastapi import Request, Response
+
+@router.options("/register")
+async def register_options():
+    return Response(status_code=200)
+
 @router.post("/register", response_model=UserResponse)
 async def register(user: UserCreate):
     return await create_user_service(user)
