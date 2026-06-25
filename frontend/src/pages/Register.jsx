@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 
 function Register() {
   const [name, setName] = useState('');
@@ -27,11 +27,12 @@ function Register() {
 
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:8000/api/auth/register', {
+      const response = await api.post('/auth/register', {
         name,
         email,
         password
       });
+      console.log('Registration success:', response.data);
 
       // Aggressively clear old user data to prevent leakage
       localStorage.clear();
@@ -39,6 +40,7 @@ function Register() {
       localStorage.setItem('token', response.data.access_token);
       navigate('/login');
     } catch (err) {
+      console.error('Registration error:', err.response?.data || err.message);
       setError(err.response?.data?.detail || 'Registration failed. Try a different email.');
     } finally {
       setLoading(false);
