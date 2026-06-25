@@ -1,0 +1,7 @@
+{
+  "Zoho": ["Aptitude", "Logical reasoning", "DSA", "Problem solving"],
+  "TCS": ["Aptitude", "Verbal ability", "Basic coding"],
+  "Infosys": ["Aptitude", "OOPS", "DBMS", "SQL"],
+  "Amazon": ["DSA", "System design", "Behavioral questions", "Leadership principles"],
+  "Google": ["Advanced DSA", "Algorithms", "System design"]
+}

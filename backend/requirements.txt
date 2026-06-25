@@ -1,0 +1,15 @@
+fastapi[standard]
+pymongo
+motor
+passlib[bcrypt]
+python-jose[cryptography]
+python-dotenv
+pydantic
+pydantic-settings
+uvicorn
+google-generativeai
+openai
+PyMuPDF
+python-docx
+python-multipart
+
