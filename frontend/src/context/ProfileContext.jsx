@@ -5,7 +5,7 @@ const ProfileContext = createContext(null);
 
 export const ProfileProvider = ({ children }) => {
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!!localStorage.getItem('token'));
 
   const fetchProfile = async () => {
     const token = localStorage.getItem('token');
