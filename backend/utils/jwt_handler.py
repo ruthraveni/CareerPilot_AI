@@ -12,8 +12,15 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # 7 days
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:
+        # Node.js bcrypt generates $2b$ hashes which Python bcrypt rejects. 
+        # $2a$ is mathematically equivalent and supported by Python.
+        if hashed_password.startswith("$2b$"):
+            hashed_password = hashed_password.replace("$2b$", "$2a$", 1)
+            
         return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
-    except Exception:
+    except Exception as e:
+        import logging
+        logging.error(f"Password verification error: {e}")
         return False
 
 def get_password_hash(password: str) -> str:

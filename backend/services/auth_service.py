@@ -32,10 +32,10 @@ async def login_user_service(user: UserLogin):
     # Find user by email
     db_user = await user_collection.find_one({"email": user.email})
     if not db_user:
-        raise HTTPException(status_code=400, detail="Incorrect email or password")
+        raise HTTPException(status_code=404, detail="User not found with this email.")
         
     if not verify_password(user.password, db_user["password"]):
-        raise HTTPException(status_code=400, detail="Incorrect email or password")
+        raise HTTPException(status_code=401, detail="Incorrect password. Please try again.")
         
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
