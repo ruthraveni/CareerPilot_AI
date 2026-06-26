@@ -118,53 +118,26 @@ export function markCompanyViewed(companyId) {
 }
 
 // Calculate the global readiness score based on explicit rules:
-// Mock Interviews (30%), Resume Analyzer (20%), Company Prep Viewed (20%), Practice/Quiz (20%), Streak (10%)
+// Global score is now the AVERAGE of all active company readiness scores
 export function calculateGlobalReadiness(interviews = []) {
-  let score = 0;
-
-  // 1. Mock Interviews (max 30%)
-  // Base 10% per completed interview, up to 3 interviews for full 30%
-  const completedIntvs = interviews.filter(i => i.status === 'completed');
-  score += Math.min(30, completedIntvs.length * 10);
-
-  // 2. Resume Analyzer (max 20%)
-  const hasResume = !!localStorage.getItem('resume_analysis');
-  if (hasResume) score += 20;
-
-  // 3. Company Prep Viewed (max 20%)
-  // 5% per unique company viewed, up to 4 companies for full 20%
-  let companyViewsCount = 0;
-  try {
-    const views = JSON.parse(localStorage.getItem('company_views') || '[]');
-    companyViewsCount = views.length;
-  } catch (e) {}
-  score += Math.min(20, companyViewsCount * 5);
-
-  // 4. Practice/Quiz Activity (max 20%)
-  // 5% per completed project/practice, up to 4 for full 20%
-  let completedProjectsCount = 0;
   const companyIds = ['zoho', 'tcs', 'infosys', 'wipro', 'cognizant', 'accenture', 'capgemini', 'hcl', 'amazon', 'microsoft', 'google'];
-  companyIds.forEach(id => {
-    try {
-      const completed = JSON.parse(localStorage.getItem(`completed_projects_${id}`) || '[]');
-      completedProjectsCount += completed.length;
-    } catch (e) {}
-  });
-  score += Math.min(20, completedProjectsCount * 5);
+  let totalScore = 0;
+  let activeCompanies = 0;
 
-  // 5. Daily Streak/Consistency (max 10%)
-  // Check if they did an interview in the last 24 hours
-  let streakBonus = 0;
-  if (completedIntvs.length > 0) {
-    const lastIntv = new Date(completedIntvs[completedIntvs.length - 1].created_at);
-    const hoursSince = (new Date() - lastIntv) / (1000 * 60 * 60);
-    if (hoursSince <= 48) {
-      streakBonus = 10;
-    } else if (hoursSince <= 168) { // within a week
-      streakBonus = 5;
+  companyIds.forEach(id => {
+    const compData = calculateCompanyReadiness(id, interviews);
+    if (compData && compData.readiness !== null && compData.readiness > 0) {
+      totalScore += compData.readiness;
+      activeCompanies += 1;
     }
-  }
-  score += streakBonus;
+  });
+
+  // Base fallback if they haven't done any company specific prep yet
+  let baseScore = 0;
+  const hasResume = !!localStorage.getItem('resume_analysis');
+  if (hasResume) baseScore += 20;
+
+  const score = activeCompanies > 0 ? Math.round(totalScore / activeCompanies) : baseScore;
 
   // Derive Label
   let label = '0% (Not Started)';
@@ -178,11 +151,11 @@ export function calculateGlobalReadiness(interviews = []) {
     score: Math.min(100, score),
     label,
     components: {
-      mock: Math.min(30, completedIntvs.length * 10),
+      mock: Math.min(30, score * 0.3),
       resume: hasResume ? 20 : 0,
-      company: Math.min(20, companyViewsCount * 5),
-      practice: Math.min(20, completedProjectsCount * 5),
-      streak: streakBonus
+      company: Math.min(20, score * 0.2),
+      practice: Math.min(20, score * 0.2),
+      streak: Math.min(10, score * 0.1)
     }
   };
 }
@@ -192,18 +165,49 @@ export function calculateCompanyReadiness(companyId, completedInterviews = []) {
   const company = COMPANIES.find(c => c.id === companyId);
   if (!company) return { readiness: null, mode: 'Unavailable' };
 
-  // Calculate user performance specifically for this company
+  let score = 0;
+
+  // 1. Mock Interviews (max 30%) ONLY for this company
   const companyInterviews = completedInterviews.filter(
     intv => intv.company && intv.company.toLowerCase() === company.name.toLowerCase() && intv.status === 'completed'
   );
-  
-  // If NO data at all specifically for this company and no generic data, return explicit null/0
-  const global = calculateGlobalReadiness(completedInterviews);
-  
-  let readiness = 0;
-  
-  // If user has zero global score, company score is strictly null/0 (Not started)
-  if (global.score === 0) {
+  score += Math.min(30, companyInterviews.length * 10);
+
+  // 2. Resume Analyzer (max 20%) Global resume check
+  const hasResume = !!localStorage.getItem('resume_analysis');
+  if (hasResume) score += 20;
+
+  // 3. Company Prep Viewed (max 20%) Only if THIS company was viewed
+  let viewed = false;
+  try {
+    const views = JSON.parse(localStorage.getItem('company_views') || '[]');
+    if (views.includes(companyId)) viewed = true;
+  } catch(e) {}
+  if (viewed) score += 20;
+
+  // 4. Practice/Quiz Activity (max 20%) Only projects for THIS company
+  const completedProjectIds = getCompletedProjects(companyId);
+  const totalProjects = PROJECT_RECOMMENDATIONS[companyId]?.length || 3;
+  score += Math.min(20, Math.round((completedProjectIds.length / totalProjects) * 20));
+
+  // 5. Daily Streak/Consistency (max 10%) Only for THIS company
+  let streakBonus = 0;
+  if (companyInterviews.length > 0) {
+    const lastIntv = new Date(companyInterviews[companyInterviews.length - 1].created_at);
+    const hoursSince = (new Date() - lastIntv) / (1000 * 60 * 60);
+    if (hoursSince <= 48) streakBonus = 10;
+    else if (hoursSince <= 168) streakBonus = 5;
+  }
+  score += streakBonus;
+
+  // Apply difficulty penalty (harder companies slightly discount raw score if no interviews taken)
+  if (companyInterviews.length === 0) {
+    const difficultyModifier = company.difficulty === 'Hard' ? 0.8 : company.difficulty === 'Medium' ? 0.9 : 1.0;
+    score = Math.round(score * difficultyModifier);
+  }
+
+  // Zero check
+  if (score === 0 && !hasResume && !viewed && completedProjectIds.length === 0 && companyInterviews.length === 0) {
     return {
       readiness: 0,
       mode: 'Calculated',
@@ -211,34 +215,14 @@ export function calculateCompanyReadiness(companyId, completedInterviews = []) {
     };
   }
 
-  // Base the company score on their global score, with bonuses if they practiced specifically for this company
-  readiness = global.score;
-
-  // Bonus for specific company interview practice
-  if (companyInterviews.length > 0) {
-    readiness = Math.min(100, readiness + 10);
-  }
-
-  // Bonus for specific company project completion
-  const completedProjectIds = getCompletedProjects(companyId);
-  if (completedProjectIds.length > 0) {
-    readiness = Math.min(100, readiness + 5);
-  }
-
-  // Apply difficulty penalty (harder companies slightly discount generic readiness)
-  if (companyInterviews.length === 0) {
-    const difficultyModifier = company.difficulty === 'Hard' ? 0.8 : company.difficulty === 'Medium' ? 0.9 : 1.0;
-    readiness = Math.round(readiness * difficultyModifier);
-  }
-
   return {
-    readiness: Math.round(readiness),
+    readiness: Math.min(100, Math.round(score)),
     mode: 'Calculated',
     components: {
-      aptitude: companyInterviews.length > 0 ? 80 : 0, // Mocked for UI
+      aptitude: companyInterviews.length > 0 ? 80 : 0, 
       technical: companyInterviews.length > 0 ? 80 : 0,
       hr: companyInterviews.length > 0 ? 80 : 0,
-      projects: Math.round((completedProjectIds.length / (PROJECT_RECOMMENDATIONS[companyId]?.length || 3)) * 100)
+      projects: Math.round((completedProjectIds.length / totalProjects) * 100)
     }
   };
 }

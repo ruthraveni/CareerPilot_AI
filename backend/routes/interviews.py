@@ -1353,6 +1353,7 @@ async def evaluate_answer(request: AnswerEvaluationRequest, current_user: dict =
                 "user_id": current_user["id"],
                 "interview_id": request.interview_id,
                 "score": final_report.get("readiness_percentage", 70),
+                "company": interview.get("company", "Generic"),
                 "created_at": datetime.utcnow()
             })
             
