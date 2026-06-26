@@ -130,23 +130,23 @@ function TopNavbar({ title }) {
             }`}
           >
             <div className="py-2">
-              <Link 
-                to="/dashboard" 
-                onClick={() => setDropdownOpen(false)}
-                className="flex items-center space-x-3 px-4 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
-              >
-                <LayoutDashboard className="w-4 h-4" />
-                <span>Dashboard</span>
-              </Link>
-              
-              <Link 
-                to="/settings" 
-                onClick={() => setDropdownOpen(false)}
-                 className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
-              >
-                <SettingsIcon className="w-4 h-4" />
-                <span>Settings</span>
-              </Link>
+             <Link
+  to="/dashboard"
+  onClick={() => setDropdownOpen(false)}
+  className="flex items-center space-x-3 px-4 py-2.5 text-sm text-white hover:bg-white/10 transition-colors"
+>
+  <LayoutDashboard className="w-4 h-4 text-white" />
+  <span>Dashboard</span>
+</Link>
+
+<Link
+  to="/settings"
+  onClick={() => setDropdownOpen(false)}
+  className="flex items-center space-x-3 px-4 py-2.5 text-sm text-white hover:bg-white/10 transition-colors"
+>
+  <SettingsIcon className="w-4 h-4 text-white" />
+  <span>Settings</span>
+</Link>
 
               <div className="h-px bg-white/10 my-1"></div>
 

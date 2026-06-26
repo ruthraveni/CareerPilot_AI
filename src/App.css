@@ -210,3 +210,6 @@
 .save-btn:hover {
   opacity: 0.9;
 }
+.logout {
+  color: red;
+}
