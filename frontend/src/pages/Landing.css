@@ -118,9 +118,6 @@ a {
   padding: 12rem 4rem 8rem;
   max-width: 1000px;
   margin: 0 auto;
-  position: relative;
-  z-index: 10;
-  overflow: visible;
 }
 
 .hero-content {
@@ -192,29 +189,22 @@ a {
 .hero-social-proof {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
-  position: relative;
-  z-index: 20;
-  margin-top: 1rem;
+  gap: 1rem;
 }
 
 .avatars {
   display: flex;
-  align-items: center;
-  gap: 0.5rem; /* Fixes overlap issue */
 }
 
 .avatar {
-  width: 45px;
-  height: 45px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  border: 2px solid #334155;
+  border: 2px solid #0b0f19;
   background-color: #334155;
-  background-size: cover;
-  background-position: center;
-  overflow: visible;
+  margin-left: -10px;
 }
+.avatar:first-child { margin-left: 0; }
 
 .reviews {
   font-size: 0.875rem;
