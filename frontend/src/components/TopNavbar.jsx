@@ -125,7 +125,7 @@ function TopNavbar({ title }) {
 
           {/* Dropdown Menu */}
           <div 
-            className={`absolute right-0 mt-3 w-56 bg-slate-900 border border-white/10 rounded-xl shadow-2xl overflow-hidden transition-all duration-200 origin-top-right z-50 ${
+            className={`absolute right-0 mt-3 w-56 bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl shadow-2xl overflow-hidden transition-all duration-200 origin-top-right z-50 ${
               dropdownOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
             }`}
           >
@@ -133,26 +133,26 @@ function TopNavbar({ title }) {
               <Link 
                 to="/dashboard" 
                 onClick={() => setDropdownOpen(false)}
-                className="flex items-center space-x-3 px-4 py-2.5 text-sm text-slate-300 hover:text-white hover:bg-white/5 transition-colors"
+                className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
               >
-                <LayoutDashboard className="w-4 h-4" />
+                <LayoutDashboard className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                 <span>Dashboard</span>
               </Link>
               
               <Link 
                 to="/settings" 
                 onClick={() => setDropdownOpen(false)}
-                 className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+                 className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
               >
-                <SettingsIcon className="w-4 h-4" />
+                <SettingsIcon className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                 <span>Settings</span>
               </Link>
 
-              <div className="h-px bg-white/10 my-1"></div>
+              <div className="h-px bg-slate-200 dark:bg-white/10 my-1"></div>
 
               <button 
                 onClick={handleLogout}
-                className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors"
+                className="w-full flex items-center space-x-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Logout</span>
