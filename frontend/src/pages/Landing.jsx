@@ -11,6 +11,7 @@ import {
   TrendingUp,
   BrainCircuit
 } from 'lucide-react';
+import heroImage from '../assets/hero.png';
 import './Landing.css';
 
 const Landing = () => {
@@ -69,7 +70,12 @@ const Landing = () => {
           </div>
         </div>
 
-        {/* Removed Dashboard Preview Glass Card as requested */}
+        {/* Circular Hero Image */}
+        <div className="hero-visual">
+          <div className="hero-image-circle">
+            <img src={heroImage} alt="CareerPilot AI Platform" className="hero-img" />
+          </div>
+        </div>
       </header>
 
       {/* Features Section */}
