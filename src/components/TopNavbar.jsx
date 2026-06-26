@@ -129,25 +129,7 @@ function TopNavbar({ title }) {
               dropdownOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'
             }`}
           >
-            <div className="py-2">
-             <Link
-  to="/dashboard"
-  onClick={() => setDropdownOpen(false)}
-  className="flex items-center space-x-3 px-4 py-2.5 text-sm text-white hover:bg-white/10 transition-colors"
->
-  <LayoutDashboard className="w-4 h-4 text-white" />
-  <span>Dashboard</span>
-</Link>
-
-<Link
-  to="/settings"
-  onClick={() => setDropdownOpen(false)}
-  className="flex items-center space-x-3 px-4 py-2.5 text-sm text-white hover:bg-white/10 transition-colors"
->
-  <SettingsIcon className="w-4 h-4 text-white" />
-  <span>Settings</span>
-</Link>
-
+      
               <div className="h-px bg-white/10 my-1"></div>
 
               <button 
@@ -160,7 +142,7 @@ function TopNavbar({ title }) {
             </div>
           </div>
         </div>
-      </div>
+
     </header>
   );
 }
