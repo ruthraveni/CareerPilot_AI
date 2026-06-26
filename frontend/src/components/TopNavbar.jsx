@@ -88,11 +88,7 @@ function TopNavbar({ title }) {
           </button>
         )}
 
-        {/* Notifications */}
-        <button className="relative p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-all">
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 bg-indigo-500 border-2 border-[#0b0f19] rounded-full"></span>
-        </button>
+
 
         {/* User Info & Dropdown */}
         <div className="relative border-l border-white/10 pl-6" ref={dropdownRef}>
