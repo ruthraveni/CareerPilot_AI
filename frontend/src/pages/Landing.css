@@ -217,34 +217,10 @@ a {
   margin-bottom: 0.25rem;
 }
 
-/* Dashboard Mockup / Hero Image */
+/* Dashboard Mockup (Hero Right) */
 .hero-visual {
   flex: 1;
   position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 3rem;
-  width: 100%;
-}
-
-.hero-image-circle {
-  width: 320px;
-  height: 320px;
-  border-radius: 50%;
-  overflow: hidden; /* Fixes image spilling outside */
-  border: 4px solid rgba(99, 102, 241, 0.3);
-  box-shadow: 0 0 40px rgba(99, 102, 241, 0.2);
-  background-color: rgba(99, 102, 241, 0.1);
-  position: relative;
-  z-index: 10;
-}
-
-.hero-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* Ensures image fills the circle */
-  display: block;
 }
 
 .dashboard-mockup {
