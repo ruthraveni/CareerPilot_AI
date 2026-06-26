@@ -74,12 +74,11 @@ Conversation History:
     import traceback
     model_instance = genai.GenerativeModel('gemini-2.5-flash')
     
-    max_retries = 2
+    max_retries = 3
     for attempt in range(max_retries):
         try:
             logging.info(f"Gemini API Request Attempt {attempt+1}...")
             response = await model_instance.generate_content_async(context, generation_config={"temperature": 0.2})
-            logging.info(f"Gemini API Raw Response Object: {response}")
             
             try:
                 text = response.text
@@ -93,21 +92,19 @@ Conversation History:
         except Exception as e:
             error_msg = str(e)
             logging.error(f"Gemini API Exception caught (Attempt {attempt+1}): {error_msg}")
-            logging.error(traceback.format_exc())
             
-            if attempt < max_retries - 1:
-                # Check for 429 delay
-                match = re.search(r'Please retry in (\d+\.\d+)s', error_msg)
-                if match:
-                    delay = float(match.group(1))
-                    logging.info(f"429 Quota Exceeded. Sleeping for {delay} seconds before retry...")
-                    await asyncio.sleep(delay)
-                else:
-                    await asyncio.sleep(1) # default delay
-            else:
-                raise Exception(f"Gemini API failed after retries: {error_msg}")
+            if "429" in error_msg or "quota" in error_msg.lower():
+                return "AI limit reached. Please try again later."
                 
-    raise Exception("API returned empty responses after retries.")
+            if attempt < max_retries - 1:
+                delay = 2 ** attempt
+                logging.info(f"Retrying in {delay} seconds...")
+                await asyncio.sleep(delay)
+            else:
+                logging.error(f"Gemini API failed after {max_retries} retries: {error_msg}")
+                return "I'm currently experiencing technical difficulties processing your request. Please try again later."
+                
+    return "I'm currently experiencing technical difficulties processing your request. Please try again later."
 
 def fallback_intent_engine(message: str) -> str:
     msg_lower = message.lower()
@@ -305,7 +302,7 @@ async def chat_with_mentor(request: ChatRequest, current_user: dict = Depends(ge
     except Exception as e:
         import logging
         logging.error(f"Mentor Chat Error: {e}")
-        reply = f"I'm currently experiencing technical difficulties processing your request. Please try again later. (Error details: {str(e)})"
+        reply = "I'm currently experiencing technical difficulties processing your request. Please try again later."
     
     ai_msg_obj = {
         "sender": "ai",
