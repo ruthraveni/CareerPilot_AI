@@ -54,7 +54,14 @@ function Register() {
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/20 rounded-full blur-[120px] pointer-events-none"></div>
 
       <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 p-8 rounded-2xl shadow-2xl max-w-md w-full relative z-10 transition-all duration-300 hover:border-white/20">
-        <div className="text-center mb-8">
+        <button 
+          onClick={() => navigate(-1)} 
+          className="absolute top-4 left-4 text-slate-400 hover:text-white transition-colors flex items-center gap-1 text-sm font-medium"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          Back
+        </button>
+        <div className="text-center mb-8 mt-4">
           <Link to="/" className="inline-block mb-2">
             <h2 className="text-3xl font-extrabold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent flex items-center justify-center gap-2">
               CareerPilot AI
