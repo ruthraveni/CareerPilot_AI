@@ -78,13 +78,18 @@ Conversation History:
     for attempt in range(max_retries):
         try:
             logging.info(f"Gemini API Request Attempt {attempt+1}...")
-            response = model_instance.generate_content(context, generation_config={"temperature": 0.2})
+            response = await model_instance.generate_content_async(context, generation_config={"temperature": 0.2})
             logging.info(f"Gemini API Raw Response Object: {response}")
-            text = getattr(response, 'text', '')
-            if text:
-                return text.strip()
-            else:
-                logging.warning(f"Gemini API returned empty text property on attempt {attempt+1}")
+            
+            try:
+                text = response.text
+                if text:
+                    return text.strip()
+            except ValueError as ve:
+                logging.error(f"Gemini API Safety/Blocked Error: {ve}")
+                return "I'm sorry, I cannot provide a response to that due to safety filters."
+                
+            logging.warning(f"Gemini API returned empty text property on attempt {attempt+1}")
         except Exception as e:
             error_msg = str(e)
             logging.error(f"Gemini API Exception caught (Attempt {attempt+1}): {error_msg}")
@@ -100,7 +105,7 @@ Conversation History:
                 else:
                     await asyncio.sleep(1) # default delay
             else:
-                raise e
+                raise Exception(f"Gemini API failed after retries: {error_msg}")
                 
     raise Exception("API returned empty responses after retries.")
 
@@ -300,7 +305,7 @@ async def chat_with_mentor(request: ChatRequest, current_user: dict = Depends(ge
     except Exception as e:
         import logging
         logging.error(f"Mentor Chat Error: {e}")
-        reply = "I'm currently experiencing technical difficulties processing your request. Please try again later."
+        reply = f"I'm currently experiencing technical difficulties processing your request. Please try again later. (Error details: {str(e)})"
     
     ai_msg_obj = {
         "sender": "ai",
