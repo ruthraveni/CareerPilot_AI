@@ -1,9 +1,10 @@
 import axios from 'axios';
 
-const baseURL = 'https://careerpilot-ai-8d0x.onrender.com/api';
+const envUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const baseURL = envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
 
 const api = axios.create({
-  baseURL: baseURL,
+  baseURL,
 });
 
 // Request interceptor to attach JWT token
