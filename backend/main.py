@@ -21,6 +21,8 @@ app.add_middleware(
 
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(users.router, prefix="/api/users", tags=["Users"])
+from routes import admin
+app.include_router(admin.router, prefix="/api/admin", tags=["Admin"])
 app.include_router(mentor.router, prefix="/api/mentor", tags=["AI Mentor"])
 app.include_router(dashboard.router, prefix="/api/dashboard", tags=["Dashboard"])
 app.include_router(interviews.router, prefix="/api/interview", tags=["Interviews"])

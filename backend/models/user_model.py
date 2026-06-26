@@ -6,5 +6,6 @@ def user_helper(user) -> dict:
         "name": user.get("name"),
         "email": user.get("email"),
         "password": user.get("password"),
+        "role": user.get("role", "user"),
         "created_at": user.get("created_at")
     }

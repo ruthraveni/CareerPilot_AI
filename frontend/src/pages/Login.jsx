@@ -34,6 +34,7 @@ function Login() {
       if (response.data.user) {
         localStorage.setItem('user_name', response.data.user.name || '');
         localStorage.setItem('user_email', response.data.user.email || '');
+        localStorage.setItem('user_role', response.data.user.role || 'user');
       }
       await fetchProfile();
       navigate('/dashboard');

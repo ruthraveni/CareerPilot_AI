@@ -13,12 +13,14 @@ import CompanyDetail from './pages/CompanyDetail';
 import Settings from './pages/Settings';
 
 import Landing from './pages/Landing';
+import Admin from './pages/Admin';
 
 const router = createBrowserRouter([
   { path: "/", element: <Landing /> },
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
   { path: "/dashboard", element: <Dashboard /> },
+  { path: "/admin", element: <Admin /> },
   { path: "/profile", element: <Profile /> },
   { path: "/mentor", element: <AIMentor /> },
   { path: "/history", element: <History /> },

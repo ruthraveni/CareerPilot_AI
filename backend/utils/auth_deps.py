@@ -30,3 +30,11 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
             detail="User not found",
         )
     return user_helper(user)
+
+async def get_admin_user(current_user: dict = Depends(get_current_user)):
+    if current_user.get("role") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access Denied: Requires Admin Role",
+        )
+    return current_user

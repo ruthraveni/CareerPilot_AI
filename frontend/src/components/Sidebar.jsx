@@ -9,14 +9,15 @@ import {
   Settings, 
   LogOut,
   BrainCircuit,
-  Brain
+  Brain,
+  Shield
 } from 'lucide-react';
 import { useProfile } from '../context/ProfileContext';
 
 function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { name, email, profile_image, getInitials, loading, setProfile } = useProfile();
+  const { name, email, role, profile_image, getInitials, loading, setProfile } = useProfile();
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -28,6 +29,7 @@ function Sidebar() {
 
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    ...(role === 'admin' ? [{ name: 'Admin Dashboard', path: '/admin', icon: Shield }] : []),
     { name: 'AI Career Mentor', path: '/mentor', icon: Brain },
     { name: 'AI Mock Interview', path: '/interview', icon: Video },
     { name: 'Interview History', path: '/history', icon: History },

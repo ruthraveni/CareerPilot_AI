@@ -18,6 +18,7 @@ async def create_user_service(user: UserCreate):
         "name": user.name,
         "email": user.email,
         "password": hashed_password,
+        "role": "user",
         "created_at": datetime.utcnow()
     }
     
@@ -38,7 +39,7 @@ async def login_user_service(user: UserLogin):
         
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": db_user["email"]}, expires_delta=access_token_expires
+        data={"sub": db_user["email"], "id": str(db_user["_id"]), "role": db_user.get("role", "user")}, expires_delta=access_token_expires
     )
     
     return {

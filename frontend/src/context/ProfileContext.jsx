@@ -27,6 +27,7 @@ export const ProfileProvider = ({ children }) => {
         setProfile({
           name: cachedName || "User",
           email: cachedEmail || "",
+          role: localStorage.getItem('user_role') || "user",
           avatarUrl: null
         });
       }
@@ -48,6 +49,8 @@ export const ProfileProvider = ({ children }) => {
     ? profile.email 
     : (localStorage.getItem('user_email') || "");
 
+  const role = profile?.role || localStorage.getItem('user_role') || "user";
+
   const profile_image = profile?.avatarUrl || null;
 
   // Global helper for generating initial avatars
@@ -68,6 +71,7 @@ export const ProfileProvider = ({ children }) => {
       fetchProfile,
       name,
       email,
+      role,
       profile_image,
       getInitials
     }}>
