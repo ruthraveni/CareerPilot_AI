@@ -12,6 +12,7 @@ import ResumeAnalyzer from './pages/ResumeAnalyzer';
 import CompanyList from './pages/CompanyList';
 import CompanyDetail from './pages/CompanyDetail';
 import Settings from './pages/Settings';
+import FeatureDetail from './pages/FeatureDetail';
 
 import Landing from './pages/Landing';
 import Admin from './pages/Admin';
@@ -30,6 +31,7 @@ const router = createBrowserRouter([
   { path: "/company", element: <CompanyList /> },
   { path: "/company/:id", element: <CompanyDetail /> },
   { path: "/settings", element: <Settings /> },
+  { path: "/feature/:featureId", element: <FeatureDetail /> },
   { path: "*", element: <Navigate to="/" replace /> }
 ]);
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { 
   Bot, 
   FileText, 
@@ -83,25 +83,25 @@ const Landing = () => {
             <div className="feature-icon icon-purple"><Bot size={24} /></div>
             <h3>AI Interview Simulator</h3>
             <p>Practice company-specific interviews with AI-powered questions and real-time feedback.</p>
-            <a href="#more">Learn more &rarr;</a>
+            <Link to="/feature/interview-simulator">Learn more &rarr;</Link>
           </div>
           <div className="feature-card">
             <div className="feature-icon icon-green"><FileText size={24} /></div>
             <h3>Aptitude & Quizzes</h3>
             <p>Improve your aptitude skills with topic-wise quizzes and detailed performance analysis.</p>
-            <a href="#more">Learn more &rarr;</a>
+            <Link to="/feature/aptitude">Learn more &rarr;</Link>
           </div>
           <div className="feature-card">
             <div className="feature-icon icon-blue"><Code2 size={24} /></div>
             <h3>DSA Practice</h3>
             <p>Solve coding problems, track progress and improve with AI-based recommendations.</p>
-            <a href="#more">Learn more &rarr;</a>
+            <Link to="/feature/dsa">Learn more &rarr;</Link>
           </div>
           <div className="feature-card">
             <div className="feature-icon icon-orange"><TrendingUp size={24} /></div>
             <h3>Readiness Score</h3>
             <p>Get a dynamic readiness score based on your performance and target company.</p>
-            <a href="#more">Learn more &rarr;</a>
+            <Link to="/feature/readiness">Learn more &rarr;</Link>
           </div>
         </div>
       </section>
