@@ -343,3 +343,121 @@ async def test_gemini_endpoint():
             "error_message": str(e),
             "traceback": traceback.format_exc()
         }
+
+class CompanyChatRequest(BaseModel):
+    message: str
+    company_id: str
+    company_context: str
+    history_context: str = ""
+
+# For deduplication
+_pending_company_queries = {}
+
+@router.post("/company-chat")
+async def company_chat_endpoint(request: CompanyChatRequest, current_user: dict = Depends(get_current_user)):
+    user_id = str(current_user["id"])
+    
+    # Rate Limiting
+    if not check_rate_limit(user_id):
+        import logging
+        logging.warning(f"Rate limit exceeded for user {user_id} on company-chat")
+        return {"text": "You are sending messages too quickly. Please wait a minute before trying again.", "isFallback": True}
+        
+    msg_lower = request.message.lower().strip()
+    cache_key = (request.company_id, msg_lower)
+    
+    import logging
+    
+    # 1. Deduplication (Wait if same request is already processing)
+    loop = asyncio.get_running_loop()
+    if cache_key in _pending_company_queries:
+        logging.info(f"Deduplication: Waiting for existing query for {cache_key}")
+        try:
+            return await _pending_company_queries[cache_key]
+        except Exception as e:
+            logging.error(f"Deduplication existing query failed: {e}")
+            # If the ongoing one fails, we fall through and try again, or fallback
+            pass
+
+    fut = loop.create_future()
+    _pending_company_queries[cache_key] = fut
+    
+    try:
+        # 2. Global MongoDB Cache
+        cache_col = get_collection("global_qa_cache")
+        cached_doc = await cache_col.find_one({"company_id": request.company_id, "message_lower": msg_lower})
+        
+        if cached_doc:
+            logging.info(f"MongoDB Global Cache hit for {cache_key}")
+            response_data = {"text": cached_doc["response"], "isFallback": False}
+            fut.set_result(response_data)
+            return response_data
+            
+        # 3. Call Gemini
+        import google.generativeai as genai
+        if not GEMINI_API_KEY:
+            raise Exception("GEMINI_API_KEY not configured")
+            
+        genai.configure(api_key=GEMINI_API_KEY)
+        model_instance = genai.GenerativeModel('gemini-2.5-flash')
+        
+        prompt = f"""You are a placement preparation mentor helping a student prepare for an interview.
+Here is some information about the company:
+{request.company_context}
+
+Conversation history so far:
+{request.history_context}
+
+Student's question: "{request.message}"
+
+Provide a concise, helpful, and professional response in 2-3 sentences. Focus on placement tips, technical preparation, or roadmap guidance. Do not use markdown titles."""
+        
+        logging.info(f"Calling Gemini API for company {request.company_id}...")
+        try:
+            response = await model_instance.generate_content_async(prompt, generation_config={"temperature": 0.2})
+            if not response.text:
+                raise Exception("Empty response from Gemini")
+                
+            bot_response = response.text.strip()
+            
+            # Save to global cache
+            await cache_col.insert_one({
+                "company_id": request.company_id,
+                "message_lower": msg_lower,
+                "original_message": request.message,
+                "response": bot_response,
+                "timestamp": datetime.utcnow()
+            })
+            
+            response_data = {"text": bot_response, "isFallback": False}
+            fut.set_result(response_data)
+            return response_data
+            
+        except Exception as api_err:
+            error_msg = str(api_err).lower()
+            if "429" in error_msg or "quota" in error_msg:
+                logging.error("Gemini Quota Exceeded (429) during company-chat.")
+            else:
+                logging.error(f"Gemini API Error during company-chat: {api_err}")
+            raise api_err
+            
+    except Exception as final_e:
+        # 4. Fallback system
+        logging.warning("Using algorithmic fallback response for company-chat.")
+        company_name = request.company_id.replace('-', ' ').title()
+        
+        fallback = f"Focus on core concepts, problem-solving, and resume preparation for {company_name}."
+        if "round" in msg_lower or "process" in msg_lower:
+            fallback = f"Make sure to thoroughly review the standard hiring rounds for {company_name}. Practice coding, aptitude, and behavioral questions!"
+        elif "skill" in msg_lower or "prepare" in msg_lower:
+            fallback = f"For {company_name}, mastering Data Structures, Algorithms, and Core CS Fundamentals is vital. Keep practicing!"
+        elif "salary" in msg_lower or "package" in msg_lower:
+            fallback = f"The package at {company_name} typically aligns with industry standards, but focus on the learning curve right now!"
+            
+        response_data = {"text": fallback, "isFallback": True}
+        if not fut.done():
+            fut.set_result(response_data)
+        return response_data
+        
+    finally:
+        _pending_company_queries.pop(cache_key, None)

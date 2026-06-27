@@ -1,5 +1,5 @@
-import { generateContent } from './geminiService';
 import { COMPANIES } from './companyData';
+import api from './api';
 
 // Simple in-memory cache of the last 5 messages per company ID
 // Each message entry is { role: 'user' | 'assistant', content: string }
@@ -17,21 +17,14 @@ export async function askMentor(companyId, messageText) {
 
   const history = chatCache[companyId];
 
-  // Create prompt with context of the company, previous messages (if any), and current message
+  // Context strings for backend
   const historyContext = history.slice(-4).map(msg => `${msg.role === 'user' ? 'User' : 'Mentor'}: ${msg.content}`).join('\n');
-  const prompt = `You are a placement preparation mentor helping a student prepare for an interview at ${companyName}.
-Here is some information about ${companyName}:
+  const companyContext = `
 Description: ${company?.description}
 Hiring Process: ${company?.hiringProcess?.join(', ')}
 Key Skills Needed: ${company?.skills?.join(', ')}
 Hiring Difficulty: ${company?.difficulty}
-
-Conversation history so far:
-${historyContext}
-
-Student's question: "${messageText}"
-
-Provide a concise, helpful, and professional response in 2-3 sentences. Focus on placement tips, technical preparation, or roadmap guidance. Do not use markdown titles.`;
+`;
 
   // Add user message to local cache
   history.push({ role: 'user', content: messageText });
@@ -40,24 +33,28 @@ Provide a concise, helpful, and professional response in 2-3 sentences. Focus on
   }
 
   try {
-    const res = await generateContent(prompt);
-    if (res.error || !res.text) {
-      throw new Error('Gemini API call failed or returned empty text');
-    }
-    
-    const botResponse = res.text;
-    
+    // Send request to the new scalable backend route
+    const response = await api.post('/mentor/company-chat', {
+      message: messageText,
+      company_id: companyId,
+      company_context: companyContext.trim(),
+      history_context: historyContext
+    });
+
+    const botResponse = response.data.text;
+    const isFallback = response.data.isFallback;
+
     // Add bot response to cache
     history.push({ role: 'assistant', content: botResponse });
     if (history.length > 5) {
       history.shift();
     }
     
-    return { text: botResponse, isFallback: false };
+    return { text: botResponse, isFallback };
   } catch (error) {
-    console.warn('askMentor fell back to local knowledge:', error);
+    console.warn('askMentor backend call failed, falling back to local algorithmic response:', error);
     
-    // Provide a nice customized fallback response using company details if API fails
+    // Provide a nice customized fallback response using company details if API fails completely
     let customFallback = fallbackAnswer;
     if (messageText.toLowerCase().includes('round') || messageText.toLowerCase().includes('process')) {
       customFallback = `${companyName}'s hiring process typically consists of: ${company?.hiringProcess?.join(' → ')}. Focus your preparation on these key steps!`;
