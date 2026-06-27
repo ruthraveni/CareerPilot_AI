@@ -955,7 +955,7 @@ def generate_final_report_dynamically(questions: list, answers: list, feedbacks:
         "recommended_next_companies": recommended_next[:3]
     }
 
-async def generate_gemini_questions(role: str, company: str, round_type: str, question_count: int, profile: Optional[dict] = None) -> list:
+async def generate_gemini_questions(role: str, company: str, round_type: str, question_count: int, profile: Optional[dict] = None, ai_settings: Optional[dict] = None) -> list:
     """Generate high-quality interview questions utilizing Gemini and validation retry loops."""
     profile_info = ""
     if profile:
@@ -968,8 +968,21 @@ async def generate_gemini_questions(role: str, company: str, round_type: str, qu
     
     # Pre-generate difficulty and number configurations for each index
     configs = []
+    
+    fixed_difficulty = None
+    if ai_settings and ai_settings.get("preferred_recruiter_level"):
+        lvl = ai_settings["preferred_recruiter_level"]
+        if lvl == "Entry":
+            fixed_difficulty = "easy"
+        elif lvl == "Medium (Associate)":
+            fixed_difficulty = "medium"
+        elif lvl in ["Senior", "Lead"]:
+            fixed_difficulty = "hard"
+            
     for idx in range(question_count):
-        if question_count == 5:
+        if fixed_difficulty:
+            diff = fixed_difficulty
+        elif question_count == 5:
             diff = "easy" if idx < 2 else ("medium" if idx < 4 else "hard")
         else:
             pct = idx / question_count
@@ -1050,6 +1063,12 @@ async def generate_gemini_questions(role: str, company: str, round_type: str, qu
             "Format each question exactly as a JSON object: "
             "{\"text\": \"Technical question...\", \"type\": \"descriptive\", \"difficulty\": \"medium\"}"
         )
+        
+    if ai_settings:
+        if ai_settings.get("interview_language"):
+            question_format_instruction += f"\nIMPORTANT: Generate all question text strictly in {ai_settings['interview_language']} language."
+        if ai_settings.get("preferred_recruiter_level") == "Lead":
+            question_format_instruction += "\nIMPORTANT: The candidate is applying for a 'Lead' level role. Focus heavily on system architecture, team leadership, high-level design tradeoffs, and complex scaling issues."
 
     generated = []
     used_questions = set()
@@ -1235,7 +1254,16 @@ async def get_interviews(current_user: dict = Depends(get_current_user)):
 @router.post("/start")
 async def start_interview(request: InterviewStartRequest, current_user: dict = Depends(get_current_user)):
     interviews_col = get_collection("interviews")
-    questions = await generate_gemini_questions(request.role, request.company, request.round_type, request.question_count, request.profile)
+    ai_settings_col = get_collection("ai_settings")
+    settings = await ai_settings_col.find_one({"user_id": current_user["id"]})
+    
+    if settings:
+        if settings.get("primary_target_role"):
+            request.role = settings["primary_target_role"]
+        if settings.get("primary_target_company"):
+            request.company = settings["primary_target_company"]
+            
+    questions = await generate_gemini_questions(request.role, request.company, request.round_type, request.question_count, request.profile, settings)
     
     first_diff = questions[0].get("difficulty", "easy") if isinstance(questions[0], dict) else "easy"
     
@@ -1314,12 +1342,29 @@ async def evaluate_answer(request: AnswerEvaluationRequest, current_user: dict =
         score = feedback_doc["overall_score"]
         current_diff = interview.get("current_difficulty", "easy")
         
-        if score > 85:
-            new_diff = "hard" if current_diff == "medium" else "medium" if current_diff == "easy" else "hard"
-        elif score < 60:
-            new_diff = "easy" if current_diff == "medium" else "medium" if current_diff == "hard" else "easy"
+        # Check if difficulty is locked by AI Settings
+        ai_settings_col = get_collection("ai_settings")
+        settings = await ai_settings_col.find_one({"user_id": current_user["id"]})
+        
+        fixed_difficulty = None
+        if settings and settings.get("preferred_recruiter_level"):
+            lvl = settings["preferred_recruiter_level"]
+            if lvl == "Entry":
+                fixed_difficulty = "easy"
+            elif lvl == "Medium (Associate)":
+                fixed_difficulty = "medium"
+            elif lvl in ["Senior", "Lead"]:
+                fixed_difficulty = "hard"
+                
+        if fixed_difficulty:
+            new_diff = fixed_difficulty
         else:
-            new_diff = current_diff
+            if score > 85:
+                new_diff = "hard" if current_diff == "medium" else "medium" if current_diff == "easy" else "hard"
+            elif score < 60:
+                new_diff = "easy" if current_diff == "medium" else "medium" if current_diff == "hard" else "easy"
+            else:
+                new_diff = current_diff
             
         await interviews_col.update_one(
             {"_id": ObjectId(request.interview_id)},
