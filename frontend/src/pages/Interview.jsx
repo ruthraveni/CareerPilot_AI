@@ -3,9 +3,11 @@ import Layout from '../components/Layout';
 import api from '../utils/api';
 import { 
   Video, ChevronRight, Play, Loader2, Award, ArrowLeft, Mic, Square, 
-  Clock, Target, AlertTriangle, Building, Briefcase, ChevronDown, ChevronUp, Check, X
+  Clock, Target, AlertTriangle, Building, Briefcase, ChevronDown, ChevronUp, Check, X, 
+  StopCircle, CheckCircle2, Lightbulb, PlusCircle
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import RatingWidget from '../components/RatingWidget';
 
 function Interview() {
   const [role, setRole] = useState('Frontend Developer');
@@ -284,11 +286,14 @@ function Interview() {
       <div className="max-w-4xl mx-auto px-4 py-2">
         {!interviewId ? (
           <div className="bg-[var(--cp-surface)] border border-[var(--cp-border)] rounded-3xl p-8 shadow-sm">
-            <div className="flex items-center space-x-3 mb-6">
-              <div className="bg-indigo-50 p-3 rounded-xl text-indigo-600">
-                <Target className="h-6 w-6" />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <div className="flex items-center space-x-3">
+                <div className="bg-indigo-50 p-3 rounded-xl text-indigo-600">
+                  <Target className="h-6 w-6" />
+                </div>
+                <h3 className="text-2xl font-black text-[var(--cp-text)] tracking-tight">Configure Interview Simulator</h3>
               </div>
-              <h3 className="text-2xl font-black text-[var(--cp-text)] tracking-tight">Configure Interview Simulator</h3>
+              <RatingWidget featureId="interview_simulator" featureName="AI Mock Interview Simulator" />
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -556,6 +561,14 @@ function Interview() {
                   })}
                 </div>
               )}
+            </div>
+
+            <div className="bg-[var(--cp-bg)] border border-[var(--cp-border)] rounded-2xl mb-8 p-6 text-center shadow-sm">
+              <h4 className="text-[var(--cp-text)] font-bold mb-2">How was your experience?</h4>
+              <p className="text-[var(--cp-text-muted)] text-sm mb-4">Your feedback helps us improve the AI Interview Simulator.</p>
+              <div className="flex justify-center">
+                <RatingWidget featureId="interview_simulator" featureName="AI Mock Interview Simulator" />
+              </div>
             </div>
 
             <button

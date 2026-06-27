@@ -80,16 +80,30 @@ function Dashboard() {
 
   const { profile } = useProfile();
   
-  const { data: interviews = [], isLoading: loading, error: queryError } = useQuery({
+  const { data: interviews = [], isLoading: loadingInterviews, error: interviewsError, refetch: fetchInterviews } = useQuery({
     queryKey: ['interviews'],
     queryFn: async () => {
-      const res = await api.get('/interview/interviews');
+      const res = await api.get('/history');
       return res.data;
     },
-    staleTime: 2 * 60 * 1000 // Cache for 2 mins
+    staleTime: 5 * 60 * 1000, 
   });
 
-  const error = queryError ? 'Failed to fetch dashboard data. Please try again.' : null;
+  const { data: ratingHistory = [], isLoading: loadingRatings } = useQuery({
+    queryKey: ['ratingHistory'],
+    queryFn: async () => {
+      const res = await api.get('/ratings/history');
+      return res.data;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const loading = loadingInterviews || loadingRatings;
+  const error = interviewsError ? 'Failed to load dashboard data.' : null;
+
+  const fetchDashboardAndAnalytics = () => {
+    fetchInterviews();
+  };
 
   const userDataStatus = useMemo(() => {
     if (!interviews.length) return { hasAnyData: false };
@@ -439,6 +453,39 @@ function Dashboard() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Ratings History Section */}
+          <div className="bg-[var(--cp-surface)] border border-[var(--cp-border)]/80 rounded-2xl p-6 shadow-sm mb-8">
+            <h3 className="text-lg font-bold text-[var(--cp-text)] mb-6">My Ratings & Feedback</h3>
+            {ratingHistory && ratingHistory.length > 0 ? (
+              <div className="space-y-4">
+                {ratingHistory.map((r, i) => (
+                  <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-[var(--cp-bg)] border border-[var(--cp-border)] rounded-xl gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-bold text-[var(--cp-text)]">
+                          {r.feature_id === 'interview_simulator' ? 'AI Mock Interview Simulator' : 
+                           r.feature_id === 'resume_analyzer' ? 'AI Resume Analyzer' :
+                           r.feature_id === 'ai_mentor' ? 'AI Career Coach' : r.feature_id}
+                        </span>
+                        <div className="flex bg-amber-100 px-2 py-0.5 rounded-lg text-amber-700 text-xs font-bold items-center gap-1">
+                           ⭐ {r.rating}/5
+                        </div>
+                      </div>
+                      {r.comment && <p className="text-sm text-[var(--cp-text-muted)] italic">"{r.comment}"</p>}
+                    </div>
+                    <div className="text-xs text-slate-400 font-semibold whitespace-nowrap">
+                      {new Date(r.updated_at).toLocaleDateString()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 bg-[var(--cp-bg)] rounded-xl border border-[var(--cp-border)]">
+                <p className="text-[var(--cp-text-muted)] text-sm font-semibold">You haven't submitted any ratings yet.</p>
+              </div>
+            )}
           </div>
         </>
     </Layout>

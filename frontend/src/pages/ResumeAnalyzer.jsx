@@ -6,6 +6,7 @@ import {
   Star, Zap, TrendingUp, Target, Award, ChevronRight,
   BarChart3, BookOpen, Lightbulb, XCircle, ArrowLeft, RefreshCw, Bookmark, Cpu
 } from 'lucide-react';
+import RatingWidget from '../components/RatingWidget';
 
 /* ───────────────────────────────────────────────
    Sub-components
@@ -175,12 +176,19 @@ function ResumeAnalyzer() {
           <div className="absolute bottom-0 left-0 w-40 h-40 bg-[var(--cp-surface)]/5 rounded-full translate-y-1/2 -translate-x-1/2" />
           <div className="relative z-10 flex items-center justify-between flex-wrap gap-4">
             <div>
-              <div className="flex items-center gap-2 mb-2">
-                <BarChart3 className="w-5 h-5 text-indigo-200" />
-                <span className="text-indigo-200 text-xs font-black uppercase tracking-widest">ATS Similarity Platform</span>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-2">
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-indigo-200" />
+                  <span className="text-indigo-200 text-xs font-black uppercase tracking-widest">ATS Similarity Platform</span>
+                </div>
               </div>
-              <h1 className="text-3xl font-black mb-2 tracking-tight">AI Resume Analyzer</h1>
-              <p className="text-indigo-100 text-sm font-medium max-w-md leading-relaxed">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-2">
+                <h1 className="text-3xl font-black tracking-tight">AI Resume Analyzer</h1>
+                <div className="text-slate-800">
+                  <RatingWidget featureId="resume_analyzer" featureName="AI Resume Analyzer" />
+                </div>
+              </div>
+              <p className="text-indigo-100 text-sm font-medium max-w-md leading-relaxed mt-2">
                 Scan your resume against specific target roles. Check keyword density, structural quality, and receive customized tips.
               </p>
             </div>
@@ -496,6 +504,14 @@ function ResumeAnalyzer() {
                     ))}
                   </ul>
                 </div>
+              </div>
+            </div>
+
+            <div className="bg-[var(--cp-bg)] border border-[var(--cp-border)] rounded-2xl mb-8 p-6 text-center shadow-sm">
+              <h4 className="text-[var(--cp-text)] font-bold mb-2">How was your experience?</h4>
+              <p className="text-[var(--cp-text-muted)] text-sm mb-4">Your feedback helps us improve the AI Resume Analyzer.</p>
+              <div className="flex justify-center">
+                <RatingWidget featureId="resume_analyzer" featureName="AI Resume Analyzer" />
               </div>
             </div>
 

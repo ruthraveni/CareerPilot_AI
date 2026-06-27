@@ -27,6 +27,7 @@ async def init_db_indexes():
         await db["chat_history"].create_index("user_id")
         await db["resume_analyses"].create_index("user_id")
         await db["user_preferences"].create_index("user_id", unique=True)
+        await db["ratings"].create_index([("user_id", 1), ("feature_id", 1)], unique=True)
         logger.info("MongoDB indexes successfully created/verified")
     except Exception as e:
         logger.error(f"Failed to create MongoDB indexes: {e}")

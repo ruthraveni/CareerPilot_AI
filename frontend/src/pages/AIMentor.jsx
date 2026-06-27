@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import Layout from '../components/Layout';
 import api from '../utils/api';
 import { Send, Brain, Code, FileSearch, Compass, ListTodo, User, Loader2 } from 'lucide-react';
+import RatingWidget from '../components/RatingWidget';
 
 function AIMentor() {
   const [messages, setMessages] = useState([]);
@@ -147,9 +148,14 @@ function AIMentor() {
               </p>
             </div>
           </div>
-          <span className="text-xs font-semibold bg-[var(--cp-surface)]/10 px-3 py-1 rounded-full text-slate-300">
-            Persistent History Enabled
-          </span>
+          <div className="flex items-center gap-4">
+            <div className="hidden md:block">
+              <RatingWidget featureId="ai_mentor" featureName="AI Career Coach" />
+            </div>
+            <span className="text-xs font-semibold bg-[var(--cp-surface)]/10 px-3 py-1 rounded-full text-slate-300">
+              Persistent History Enabled
+            </span>
+          </div>
         </div>
 
         {/* Message Panel */}

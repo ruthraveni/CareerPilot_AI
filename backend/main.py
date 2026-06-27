@@ -37,6 +37,8 @@ app.include_router(resume.router, prefix="/api/resume", tags=["Resume Analyzer"]
 app.include_router(feedback.router, prefix="/api/feedback", tags=["Feedback"])
 app.include_router(ai_settings.router, prefix="/api/ai-settings", tags=["AI Settings"])
 app.include_router(user_preferences.router, prefix="/api/user-preferences", tags=["User Preferences"])
+from routes import ratings
+app.include_router(ratings.router, prefix="/api/ratings", tags=["Ratings"])
 
 from fastapi import Depends
 from config.database import get_collection, init_db_indexes
