@@ -13,18 +13,18 @@ export function ThemeProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   // Apply theme to DOM
-  const applyThemeToDOM = (t) => {
+  const applyThemeToDOM = React.useCallback((t) => {
     if (t === 'dark') {
       document.documentElement.setAttribute('data-theme', 'dark');
     } else {
       document.documentElement.removeAttribute('data-theme');
     }
-  };
+  }, []);
 
   // Apply font size to DOM
-  const applyFontSizeToDOM = (size) => {
+  const applyFontSizeToDOM = React.useCallback((size) => {
     document.body.style.fontSize = size === 'Small' ? '13px' : size === 'Large' ? '17px' : '15px';
-  };
+  }, []);
 
   useEffect(() => {
     async function loadPreferences() {
