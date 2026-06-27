@@ -18,9 +18,16 @@ async def submit_feedback(request: FeedbackRequest, current_user: dict = Depends
         raise HTTPException(status_code=400, detail="Feedback message must be at least 5 characters long.")
         
     feedback_col = get_collection("feedbacks")
+    users_col = get_collection("users")
+    
+    user_doc = await users_col.find_one({"_id": ObjectId(current_user["id"])})
+    user_name = user_doc.get("name") or user_doc.get("fullName", "Unknown") if user_doc else "Unknown"
+    user_email = user_doc.get("email", "Unknown") if user_doc else "Unknown"
     
     feedback_data = {
         "user_id": current_user["id"],
+        "user_name": user_name,
+        "user_email": user_email,
         "message": msg,
         "section": request.section,
         "createdAt": datetime.utcnow()
