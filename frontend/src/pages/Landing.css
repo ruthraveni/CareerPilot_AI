@@ -1,7 +1,7 @@
 /* Landing Page Dark Theme & Base Styles */
 .landing-container {
-  background-color: #0b0f19;
-  color: #f8fafc;
+  background-color: var(--cp-bg, #0b0f19);
+  color: var(--cp-text, #f8fafc);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
@@ -17,12 +17,12 @@ a {
 
 /* Glassmorphism utility */
 .glass-card {
-  background: rgba(17, 24, 39, 0.6);
+  background: color-mix(in srgb, var(--cp-surface, #111827) 60%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--cp-border, rgba(255, 255, 255, 0.08));
   border-radius: 20px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--cp-shadow-hover, 0 25px 50px -12px rgba(0, 0, 0, 0.5));
 }
 
 /* Typography Enhancements */
@@ -43,9 +43,9 @@ a {
   left: 0;
   right: 0;
   z-index: 50;
-  background: rgba(11, 15, 25, 0.8);
+  background: color-mix(in srgb, var(--cp-surface, #0b0f19) 80%, transparent);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid var(--cp-border, rgba(255,255,255,0.05));
 }
 
 .nav-logo {
@@ -65,11 +65,11 @@ a {
   gap: 2rem;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #cbd5e1;
+  color: var(--cp-text-muted, #cbd5e1);
 }
 
 .nav-links a:hover {
-  color: #fff;
+  color: var(--cp-text, #fff);
 }
 
 .nav-auth {
@@ -80,8 +80,8 @@ a {
 
 .nav-login {
   background: transparent;
-  color: #f8fafc;
-  border: 1px solid rgba(255,255,255,0.2);
+  color: var(--cp-text, #f8fafc);
+  border: 1px solid var(--cp-border, rgba(255,255,255,0.2));
   padding: 0.5rem 1.25rem;
   border-radius: 8px;
   font-weight: 600;
@@ -90,7 +90,7 @@ a {
 }
 
 .nav-login:hover {
-  background: rgba(255,255,255,0.1);
+  background: var(--cp-surface2, rgba(255,255,255,0.1));
 }
 
 .nav-signup {

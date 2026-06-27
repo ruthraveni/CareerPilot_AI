@@ -2,6 +2,7 @@ import React, { useMemo, useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { Bot, FileText, Code2, TrendingUp, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import '../styles/company.css';
+import './Landing.css';
 
 const FEATURE_DATA = {
   'interview-simulator': {
@@ -84,98 +85,114 @@ export default function FeatureDetail() {
   }
 
   return (
-    <div className="cp-page min-h-screen pb-20">
-      {/* Simple Header */}
-      <header className="bg-white border-b border-slate-200 py-4 px-6 flex items-center justify-between sticky top-0 z-50">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center shadow-lg">
-            <Bot size={24} color="white" />
-          </div>
-          <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">
-            CareerPilot AI
-          </span>
+    <div className="landing-container transition-colors duration-300 pb-20">
+      {/* Navbar matching Landing style */}
+      <nav className="landing-nav">
+        <div className="nav-logo">
+          <Bot className="nav-icon" />
+          <span>CareerPilot <strong>AI</strong></span>
         </div>
-        <Link 
-          to="/"
-          className="text-sm font-semibold text-slate-600 hover:text-indigo-600 transition-colors"
-        >
-          Return to Home
-        </Link>
-      </header>
+        <div className="nav-links">
+          <Link to="/">Home</Link>
+        </div>
+        <div className="nav-auth">
+          <Link 
+            to="/"
+            className="nav-login"
+          >
+            ← Return to Home
+          </Link>
+        </div>
+      </nav>
 
-      <main className="max-w-4xl mx-auto px-6 pt-12">
+      <main className="max-w-5xl mx-auto px-6 pt-16">
         
-        {/* Feature Hero */}
-        <div className="text-center mb-16">
+        {/* Premium Hero Section */}
+        <div className="text-center mb-20 flex flex-col items-center">
           <div 
-            className="w-24 h-24 mx-auto rounded-2xl flex items-center justify-center mb-6 shadow-sm"
-            style={{ background: feature.iconBg }}
+            className="w-24 h-24 rounded-3xl flex items-center justify-center mb-8 shadow-xl shadow-indigo-500/10"
+            style={{ background: feature.iconBg, border: '1px solid var(--cp-border)' }}
           >
             {feature.icon}
           </div>
-          <h1 className="text-4xl font-extrabold text-slate-900 mb-4">{feature.title}</h1>
-          <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
+          <h1 className="text-5xl md:text-6xl font-extrabold mb-6 tracking-tight" style={{ color: 'var(--cp-text)' }}>
+            {feature.title}
+          </h1>
+          <p className="text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed" style={{ color: 'var(--cp-text-muted)' }}>
             {feature.intro}
           </p>
         </div>
 
-        {/* Detailed Description */}
-        <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 mb-8">
-          <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-            <div className="w-1 h-6 bg-indigo-600 rounded-full"></div>
-            About this Feature
-          </h2>
-          <p className="text-slate-700 leading-relaxed">
-            {feature.description}
-          </p>
+        {/* Glassmorphism Details Section */}
+        <div className="glass-card p-8 md:p-12 mb-12 transition-colors duration-300">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            
+            {/* Left Column: About & Benefits */}
+            <div className="space-y-10">
+              <div>
+                <h2 className="text-2xl font-bold mb-4 flex items-center gap-3" style={{ color: 'var(--cp-text)' }}>
+                  <div className="w-2 h-8 bg-indigo-500 rounded-full"></div>
+                  About this Feature
+                </h2>
+                <p className="text-lg leading-relaxed" style={{ color: 'var(--cp-text-muted)' }}>
+                  {feature.description}
+                </p>
+              </div>
+
+              <div className="p-8 rounded-2xl border" style={{ backgroundColor: 'var(--cp-primary-light)', borderColor: 'var(--cp-border)' }}>
+                <h3 className="text-xl font-bold mb-4 flex items-center gap-2" style={{ color: 'var(--cp-primary)' }}>
+                  <TrendingUp size={24} />
+                  Student Benefits
+                </h3>
+                <p className="text-md leading-relaxed" style={{ color: 'var(--cp-text)' }}>
+                  {feature.benefits}
+                </p>
+              </div>
+            </div>
+
+            {/* Right Column: Key Features */}
+            <div>
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-3" style={{ color: 'var(--cp-text)' }}>
+                <div className="w-2 h-8 bg-emerald-500 rounded-full"></div>
+                Key Capabilities
+              </h2>
+              <ul className="space-y-6">
+                {feature.keyFeatures.map((kf, idx) => (
+                  <li key={idx} className="flex items-start gap-4 p-5 rounded-2xl border transition-all hover:-translate-y-1" style={{ backgroundColor: 'var(--cp-surface)', borderColor: 'var(--cp-border)' }}>
+                    <CheckCircle2 size={24} className="text-emerald-500 flex-shrink-0 mt-0.5" />
+                    <span className="text-md font-medium leading-relaxed" style={{ color: 'var(--cp-text)' }}>{kf}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+          </div>
         </div>
 
-        {/* Key Features & Benefits Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-          
-          {/* Key Features */}
-          <div className="bg-slate-50 rounded-2xl p-8 border border-slate-100">
-            <h3 className="text-lg font-bold text-slate-900 mb-6">Key Capabilities</h3>
-            <ul className="space-y-4">
-              {feature.keyFeatures.map((kf, idx) => (
-                <li key={idx} className="flex items-start gap-3">
-                  <CheckCircle2 size={20} className="text-emerald-500 flex-shrink-0 mt-0.5" />
-                  <span className="text-slate-700 text-sm leading-relaxed">{kf}</span>
-                </li>
-              ))}
-            </ul>
+        {/* How It Works & Why Useful */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20">
+          <div className="glass-card p-8 md:p-10">
+            <h3 className="text-2xl font-bold mb-4" style={{ color: 'var(--cp-text)' }}>How it works</h3>
+            <p className="text-lg leading-relaxed" style={{ color: 'var(--cp-text-muted)' }}>
+              {feature.howItWorks}
+            </p>
           </div>
-
-          {/* Benefits */}
-          <div className="bg-indigo-50 rounded-2xl p-8 border border-indigo-100">
-            <h3 className="text-lg font-bold text-indigo-900 mb-4">Student Benefits</h3>
-            <p className="text-indigo-800 text-sm leading-relaxed">
-              {feature.benefits}
+          <div className="glass-card p-8 md:p-10">
+            <h3 className="text-2xl font-bold mb-4" style={{ color: 'var(--cp-text)' }}>Why it is useful</h3>
+            <p className="text-lg leading-relaxed" style={{ color: 'var(--cp-text-muted)' }}>
+              {feature.whyUseful}
             </p>
           </div>
         </div>
 
-        {/* How it Works & Why Useful */}
-        <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-200 mb-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            <div>
-              <h3 className="text-lg font-bold text-slate-900 mb-3">How it works</h3>
-              <p className="text-slate-600 text-sm leading-relaxed">
-                {feature.howItWorks}
-              </p>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-slate-900 mb-3">Why it is useful</h3>
-              <p className="text-slate-600 text-sm leading-relaxed">
-                {feature.whyUseful}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Bottom */}
-        <div className="flex justify-center border-t border-slate-200 pt-12">
-         
+        {/* Bottom CTA */}
+        <div className="flex justify-center pb-12">
+          <Link 
+            to="/"
+            className="flex items-center gap-3 px-10 py-4 rounded-xl font-bold text-lg transition-all transform hover:-translate-y-1 shadow-xl text-white bg-indigo-600 hover:bg-indigo-700"
+          >
+            ← Return to Home
+          </Link>
         </div>
 
       </main>
