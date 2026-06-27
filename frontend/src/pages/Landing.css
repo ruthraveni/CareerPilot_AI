@@ -200,9 +200,10 @@ a {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: 2px solid #0b0f19;
+  border: 2px solid var(--cp-bg, #0b0f19);
   background-color: #334155;
-  margin-left: -10px;
+  margin-left: -12px;
+  object-fit: cover;
 }
 .avatar:first-child { margin-left: 0; }
 

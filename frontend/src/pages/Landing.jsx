@@ -57,10 +57,10 @@ const Landing = () => {
           
           <div className="hero-social-proof">
             <div className="avatars">
-              <div className="avatar avatar-1"></div>
-              <div className="avatar avatar-2"></div>
-              <div className="avatar avatar-3"></div>
-              <div className="avatar avatar-4"></div>
+              <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Student" className="avatar avatar-1" />
+              <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Student" className="avatar avatar-2" />
+              <img src="https://randomuser.me/api/portraits/men/46.jpg" alt="Student" className="avatar avatar-3" />
+              <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Student" className="avatar avatar-4" />
             </div>
             <div className="reviews">
               <div className="stars">★★★★★</div>
