@@ -41,7 +41,7 @@ const Landing = () => {
       <header className="hero-section" id="home">
         <div className="hero-content">
           <h1 className="hero-title">
-            Your AI Copilot for Smarter <span className="text-gradient">Placement Preparation</span>
+            Your CareerPilot AI for Smarter <span className="text-gradient">Placement Preparation</span>
           </h1>
           <p className="hero-subtitle">
             CareerPilot AI helps you prepare for company-specific interviews with AI-powered practice, personalized study plans, and real-time readiness tracking.
