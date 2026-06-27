@@ -1,11 +1,12 @@
 import { createContext, useContext } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../utils/api';
 
 const ProfileContext = createContext(null);
 
 export const ProfileProvider = ({ children }) => {
   const token = localStorage.getItem('token');
+  const queryClient = useQueryClient();
   
   const { data: profile, isLoading: loading, refetch: fetchProfile } = useQuery({
     queryKey: ['profile'],
@@ -13,10 +14,15 @@ export const ProfileProvider = ({ children }) => {
       const res = await api.get('/profile');
       return res.data;
     },
-    enabled: !!token, // Only fetch if we have a token
+    enabled: !!token,
     retry: 1,
-    staleTime: 5 * 60 * 1000, // 5 minutes caching
+    staleTime: 5 * 60 * 1000,
   });
+
+  // Provide a setProfile function for legacy components to update the query cache (e.g. on logout)
+  const setProfile = (newData) => {
+    queryClient.setQueryData(['profile'], newData);
+  };
 
   // Compute Priority 1 & Priority 2 fallbacks natively
   const name = profile?.name && profile.name !== "No data available" 
