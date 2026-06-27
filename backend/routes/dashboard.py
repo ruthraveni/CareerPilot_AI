@@ -7,7 +7,7 @@ router = APIRouter()
 @router.get("")
 async def get_dashboard_data(current_user: dict = Depends(get_current_user)):
     interviews_col = get_collection("interviews")
-    feedback_col = get_collection("feedback")
+    feedback_col = get_collection("interview_feedback")
     progress_col = get_collection("progress")
     
     # 1. Total interviews attended

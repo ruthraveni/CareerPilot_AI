@@ -1293,7 +1293,7 @@ async def evaluate_answer(request: AnswerEvaluationRequest, current_user: dict =
     logger.info("Received evaluation request: interview_id=%s, question_index=%s", request.interview_id, request.question_index)
     try:
         interviews_col = get_collection("interviews")
-        feedback_col = get_collection("feedback")
+        feedback_col = get_collection("interview_feedback")
         
         interview = await interviews_col.find_one({"_id": ObjectId(request.interview_id), "user_id": current_user["id"]})
         if not interview:
