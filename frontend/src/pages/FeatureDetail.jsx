@@ -2,7 +2,6 @@ import React, { useMemo, useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { Bot, FileText, Code2, TrendingUp, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import '../styles/company.css';
-import './Landing.css';
 
 const FEATURE_DATA = {
   'interview-simulator': {
@@ -85,20 +84,25 @@ export default function FeatureDetail() {
   }
 
   return (
-    <div className="landing-container transition-colors duration-300 pb-20">
-      {/* Navbar matching Landing style */}
-      <nav className="landing-nav">
-        <div className="nav-logo">
-          <Bot className="nav-icon" />
-          <span>CareerPilot <strong>AI</strong></span>
+    <div 
+      className="min-h-screen pb-20 transition-colors duration-300"
+      style={{
+        backgroundColor: 'var(--cp-bg)',
+        color: 'var(--cp-text)',
+        backgroundImage: 'radial-gradient(circle at 15% 50%, rgba(79, 70, 229, 0.12), transparent 25%), radial-gradient(circle at 85% 30%, rgba(147, 51, 234, 0.12), transparent 25%)'
+      }}
+    >
+      {/* Navbar matching Landing style but theme-aware */}
+      <nav className="flex justify-between items-center px-8 py-5 sticky top-0 z-50 backdrop-blur-md border-b" style={{ backgroundColor: 'color-mix(in srgb, var(--cp-surface) 80%, transparent)', borderColor: 'var(--cp-border)' }}>
+        <div className="flex items-center gap-2 text-xl font-bold">
+          <Bot className="text-indigo-500" />
+          <span>CareerPilot <strong className="text-indigo-500">AI</strong></span>
         </div>
-        <div className="nav-links">
-          <Link to="/">Home</Link>
-        </div>
-        <div className="nav-auth">
+        <div className="flex items-center gap-4">
           <Link 
             to="/"
-            className="nav-login"
+            className="px-5 py-2.5 rounded-lg font-semibold text-sm transition-all"
+            style={{ backgroundColor: 'var(--cp-surface2)', border: '1px solid var(--cp-border)', color: 'var(--cp-text)' }}
           >
             ← Return to Home
           </Link>
@@ -124,7 +128,13 @@ export default function FeatureDetail() {
         </div>
 
         {/* Glassmorphism Details Section */}
-        <div className="glass-card p-8 md:p-12 mb-12 transition-colors duration-300">
+        <div 
+          className="rounded-3xl p-8 md:p-12 mb-12 shadow-2xl backdrop-blur-xl transition-colors duration-300"
+          style={{ 
+            backgroundColor: 'color-mix(in srgb, var(--cp-surface) 60%, transparent)', 
+            border: '1px solid var(--cp-border)'
+          }}
+        >
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             
             {/* Left Column: About & Benefits */}
@@ -171,13 +181,13 @@ export default function FeatureDetail() {
 
         {/* How It Works & Why Useful */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20">
-          <div className="glass-card p-8 md:p-10">
+          <div className="p-8 md:p-10 rounded-3xl border shadow-lg backdrop-blur-lg" style={{ backgroundColor: 'color-mix(in srgb, var(--cp-surface) 80%, transparent)', borderColor: 'var(--cp-border)' }}>
             <h3 className="text-2xl font-bold mb-4" style={{ color: 'var(--cp-text)' }}>How it works</h3>
             <p className="text-lg leading-relaxed" style={{ color: 'var(--cp-text-muted)' }}>
               {feature.howItWorks}
             </p>
           </div>
-          <div className="glass-card p-8 md:p-10">
+          <div className="p-8 md:p-10 rounded-3xl border shadow-lg backdrop-blur-lg" style={{ backgroundColor: 'color-mix(in srgb, var(--cp-surface) 80%, transparent)', borderColor: 'var(--cp-border)' }}>
             <h3 className="text-2xl font-bold mb-4" style={{ color: 'var(--cp-text)' }}>Why it is useful</h3>
             <p className="text-lg leading-relaxed" style={{ color: 'var(--cp-text-muted)' }}>
               {feature.whyUseful}
