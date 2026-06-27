@@ -198,7 +198,7 @@ function Dashboard() {
       <Layout title="Dashboard">
         <div className="min-h-[60vh] flex flex-col items-center justify-center">
           <Loader2 className="h-10 w-10 text-blue-600 animate-spin mb-4" />
-          <span className="text-slate-500 font-medium">Loading your dashboard...</span>
+          <span className="text-[var(--cp-text-muted)] font-medium">Loading your dashboard...</span>
         </div>
       </Layout>
     );
@@ -209,8 +209,8 @@ function Dashboard() {
       <Layout title="Dashboard">
         <div className="min-h-[60vh] flex flex-col items-center justify-center text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-          <h3 className="text-lg font-bold text-slate-800">Something went wrong</h3>
-          <p className="text-slate-500 text-sm mt-1">{error}</p>
+          <h3 className="text-lg font-bold text-[var(--cp-text)]">Something went wrong</h3>
+          <p className="text-[var(--cp-text-muted)] text-sm mt-1">{error}</p>
           <button 
             onClick={fetchDashboardAndAnalytics}
             className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors"
@@ -289,7 +289,7 @@ function Dashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             <div className="lg:col-span-2 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-3xl p-8 text-white relative overflow-hidden shadow-xl shadow-blue-500/10">
               <div className="relative z-10">
-                <span className="bg-white/20 text-white font-semibold text-xs px-3 py-1.5 rounded-full backdrop-blur-md">
+                <span className="bg-[var(--cp-surface)]/20 text-white font-semibold text-xs px-3 py-1.5 rounded-full backdrop-blur-md">
                   Placement Prep Active
                 </span>
                 <h2 className="text-3xl font-black mt-4 leading-tight font-sans">Welcome back!</h2>
@@ -303,17 +303,17 @@ function Dashboard() {
             </div>
 
             {/* Daily Motivation */}
-            <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
+            <div className="bg-[var(--cp-surface)] border border-[var(--cp-border)]/80 rounded-3xl p-6 shadow-sm flex flex-col justify-between hover:shadow-md transition-all">
               <div>
                 <div className="flex items-center justify-between mb-4">
                   <span className="text-sm font-semibold text-slate-400 font-sans">Daily Tip</span>
                   <Sparkles className="h-5 w-5 text-amber-500 animate-pulse" />
                 </div>
-                <p className="text-slate-800 font-semibold leading-relaxed">
+                <p className="text-[var(--cp-text)] font-semibold leading-relaxed">
                   "Focus on structuring technical answers with the STAR method (Situation, Task, Action, Result)."
                 </p>
               </div>
-              <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+              <div className="mt-4 pt-4 border-t border-[var(--cp-border)] flex items-center justify-between">
                 <span className="text-xs font-semibold text-blue-600">Tip of the day</span>
                 <span className="text-xs text-slate-400">CareerPilot Coach</span>
               </div>
@@ -325,14 +325,14 @@ function Dashboard() {
             {stats.map((stat, i) => {
               const Icon = stat.icon;
               return (
-                <div key={i} className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
+                <div key={i} className="bg-[var(--cp-surface)] border border-[var(--cp-border)]/80 rounded-2xl p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300">
                   <div className="flex justify-between items-start">
                     <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.color} text-white`}>
                       <Icon className="h-5 w-5" />
                     </div>
                   </div>
-                  <p className="text-slate-500 text-sm font-semibold mt-4">{stat.name}</p>
-                  <h3 className="text-2xl font-black text-slate-800 mt-1">{stat.value}</h3>
+                  <p className="text-[var(--cp-text-muted)] text-sm font-semibold mt-4">{stat.name}</p>
+                  <h3 className="text-2xl font-black text-[var(--cp-text)] mt-1">{stat.value}</h3>
                 </div>
               );
             })}
@@ -341,17 +341,17 @@ function Dashboard() {
           {/* Charts Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
             {/* Score Trend */}
-            <div className="lg:col-span-2 bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm">
+            <div className="lg:col-span-2 bg-[var(--cp-surface)] border border-[var(--cp-border)]/80 rounded-2xl p-6 shadow-sm">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold text-slate-800">Preparation Progress (Score Trend)</h3>
+                <h3 className="text-lg font-bold text-[var(--cp-text)]">Preparation Progress (Score Trend)</h3>
                 <span className="text-xs font-semibold text-slate-400">Last 10 sessions</span>
               </div>
               <div className="h-64 flex flex-col justify-center items-center">
                 {metrics.scoreTrend && metrics.scoreTrend.length >= 2 ? (
                   <Line data={scoreTrendData} options={chartOptions} />
                 ) : (
-                  <div className="text-center p-6 bg-slate-50 rounded-2xl border border-slate-100 max-w-sm">
-                    <p className="text-slate-500 text-sm font-semibold">
+                  <div className="text-center p-6 bg-[var(--cp-bg)] rounded-2xl border border-[var(--cp-border)] max-w-sm">
+                    <p className="text-[var(--cp-text-muted)] text-sm font-semibold">
                       Complete more interviews to generate trends.
                     </p>
                     <button 
@@ -366,9 +366,9 @@ function Dashboard() {
             </div>
 
             {/* Weekly Activity Bar */}
-            <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm">
+            <div className="bg-[var(--cp-surface)] border border-[var(--cp-border)]/80 rounded-2xl p-6 shadow-sm">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-bold text-slate-800">Weekly Activity</h3>
+                <h3 className="text-lg font-bold text-[var(--cp-text)]">Weekly Activity</h3>
                 <span className="text-xs font-semibold text-slate-400">Sessions per day</span>
               </div>
               <div className="h-64">
@@ -379,24 +379,24 @@ function Dashboard() {
 
           {/* Weak Areas Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            <div className="lg:col-span-2 bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm">
-              <h3 className="text-lg font-bold text-slate-800 mb-6">Weak Areas Identified</h3>
+            <div className="lg:col-span-2 bg-[var(--cp-surface)] border border-[var(--cp-border)]/80 rounded-2xl p-6 shadow-sm">
+              <h3 className="text-lg font-bold text-[var(--cp-text)] mb-6">Weak Areas Identified</h3>
               <div className="space-y-5">
                 {metrics.weakAreas && metrics.weakAreas.length > 0 ? (
                   metrics.weakAreas.map((area, i) => (
                     <div key={i}>
                       <div className="flex justify-between items-center mb-1.5">
-                        <span className="text-sm font-bold text-slate-700">{area.title}</span>
+                        <span className="text-sm font-bold text-[var(--cp-text-muted)]">{area.title}</span>
                         <span className="text-xs font-semibold text-slate-400">{area.score} score</span>
                       </div>
-                      <div className="w-full bg-slate-100 rounded-full h-2">
+                      <div className="w-full bg-[var(--cp-surface2)] rounded-full h-2">
                         <div className={`${area.color} h-2 rounded-full`} style={{ width: area.score }} />
                       </div>
                       <p className="text-xs text-slate-400 mt-1.5">{area.desc}</p>
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-12 bg-slate-50 rounded-2xl border border-slate-100">
+                  <div className="text-center py-12 bg-[var(--cp-bg)] rounded-2xl border border-[var(--cp-border)]">
                     <p className="text-slate-400 text-sm font-semibold">
                       No sufficient interview data available yet.
                     </p>
@@ -412,10 +412,10 @@ function Dashboard() {
             </div>
 
             {/* Feature tools list */}
-            <div className="bg-white border border-slate-200/80 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+            <div className="bg-[var(--cp-surface)] border border-[var(--cp-border)]/80 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
               <div>
-                <h3 className="text-lg font-bold text-slate-800 mb-4">Quick Prep Tracks</h3>
-                <p className="text-sm text-slate-500 leading-relaxed mb-4">
+                <h3 className="text-lg font-bold text-[var(--cp-text)] mb-4">Quick Prep Tracks</h3>
+                <p className="text-sm text-[var(--cp-text-muted)] leading-relaxed mb-4">
                   Get placement ready. Initiate customizable mock configurations mapped specifically for target companies.
                 </p>
               </div>

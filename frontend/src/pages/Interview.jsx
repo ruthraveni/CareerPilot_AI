@@ -238,7 +238,7 @@ function Interview() {
     const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
     
     return (
-      <div className="bg-white border border-slate-150 rounded-2xl p-5 shadow-sm">
+      <div className="bg-[var(--cp-surface)] border border-[var(--cp-border)] rounded-2xl p-5 shadow-sm">
         <h5 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Performance Trend</h5>
         <div className="relative">
           <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full overflow-visible">
@@ -283,23 +283,23 @@ function Interview() {
     <Layout title="AI Mock Interview Simulator">
       <div className="max-w-4xl mx-auto px-4 py-2">
         {!interviewId ? (
-          <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
+          <div className="bg-[var(--cp-surface)] border border-[var(--cp-border)] rounded-3xl p-8 shadow-sm">
             <div className="flex items-center space-x-3 mb-6">
               <div className="bg-indigo-50 p-3 rounded-xl text-indigo-600">
                 <Target className="h-6 w-6" />
               </div>
-              <h3 className="text-2xl font-black text-slate-800 tracking-tight">Configure Interview Simulator</h3>
+              <h3 className="text-2xl font-black text-[var(--cp-text)] tracking-tight">Configure Interview Simulator</h3>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Target Company</label>
+                <label className="block text-sm font-bold text-[var(--cp-text-muted)] mb-2">Target Company</label>
                 <div className="relative">
                   <Building className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
                   <select
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 font-semibold text-slate-700 text-sm"
+                    className="w-full pl-10 pr-4 py-3 border border-[var(--cp-border)] rounded-xl focus:ring-2 focus:ring-indigo-500 font-semibold text-[var(--cp-text-muted)] text-sm"
                   >
                     <option>Zoho</option>
                     <option>TCS</option>
@@ -316,13 +316,13 @@ function Interview() {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Target Role</label>
+                <label className="block text-sm font-bold text-[var(--cp-text-muted)] mb-2">Target Role</label>
                 <div className="relative">
                   <Briefcase className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" />
                   <select
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 font-semibold text-slate-700 text-sm"
+                    className="w-full pl-10 pr-4 py-3 border border-[var(--cp-border)] rounded-xl focus:ring-2 focus:ring-indigo-500 font-semibold text-[var(--cp-text-muted)] text-sm"
                   >
                     <option>Frontend Developer</option>
                     <option>Backend Developer</option>
@@ -332,11 +332,11 @@ function Interview() {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Interview Round</label>
+                <label className="block text-sm font-bold text-[var(--cp-text-muted)] mb-2">Interview Round</label>
                 <select
                   value={roundType}
                   onChange={(e) => setRoundType(e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 font-semibold text-slate-700 text-sm"
+                  className="w-full px-4 py-3 border border-[var(--cp-border)] rounded-xl focus:ring-2 focus:ring-indigo-500 font-semibold text-[var(--cp-text-muted)] text-sm"
                 >
                   <option>Aptitude Round</option>
                   <option>Technical Round</option>
@@ -348,11 +348,11 @@ function Interview() {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Timer per Question</label>
+                <label className="block text-sm font-bold text-[var(--cp-text-muted)] mb-2">Timer per Question</label>
                 <select
                   value={timerLimit}
                   onChange={(e) => setTimerLimit(e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 font-semibold text-slate-700 text-sm"
+                  className="w-full px-4 py-3 border border-[var(--cp-border)] rounded-xl focus:ring-2 focus:ring-indigo-500 font-semibold text-[var(--cp-text-muted)] text-sm"
                 >
                   <option value={60}>60 Seconds</option>
                   <option value={90}>90 Seconds</option>
@@ -361,11 +361,11 @@ function Interview() {
               </div>
               
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">Total Questions</label>
+                <label className="block text-sm font-bold text-[var(--cp-text-muted)] mb-2">Total Questions</label>
                 <select
                   value={questionCount}
                   onChange={(e) => setQuestionCount(e.target.value)}
-                  className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 font-semibold text-slate-700 text-sm"
+                  className="w-full px-4 py-3 border border-[var(--cp-border)] rounded-xl focus:ring-2 focus:ring-indigo-500 font-semibold text-[var(--cp-text-muted)] text-sm"
                 >
                   <option value={5}>5 Questions</option>
                   <option value={10}>10 Questions</option>
@@ -392,17 +392,17 @@ function Interview() {
             </button>
           </div>
         ) : finished && finalReport ? (
-          <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-xl">
+          <div className="bg-[var(--cp-surface)] border border-[var(--cp-border)] rounded-3xl p-8 shadow-xl">
             <div className="text-center mb-8">
               <div className="bg-gradient-to-tr from-indigo-500 to-indigo-700 p-4 rounded-3xl text-white w-max mx-auto mb-4 shadow-md">
                 <Award className="h-10 w-10" />
               </div>
-              <h2 className="text-3xl font-black text-slate-800 tracking-tight">Interview Completed</h2>
-              <p className="text-slate-500 font-semibold mt-1">Verdict analysis for {company} • {role}</p>
+              <h2 className="text-3xl font-black text-[var(--cp-text)] tracking-tight">Interview Completed</h2>
+              <p className="text-[var(--cp-text-muted)] font-semibold mt-1">Verdict analysis for {company} • {role}</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 flex flex-col items-center justify-center md:col-span-1">
+              <div className="bg-[var(--cp-bg)] rounded-2xl p-6 border border-[var(--cp-border)] flex flex-col items-center justify-center md:col-span-1">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Readiness Score</span>
                 <div className="text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-violet-600">
                   {finalReport.readiness_percentage}%
@@ -414,7 +414,7 @@ function Interview() {
 
               <div className="bg-indigo-50/40 border border-indigo-100/50 rounded-2xl p-6 md:col-span-2 space-y-2">
                 <h4 className="font-black text-indigo-900 text-xs uppercase tracking-wider">Company Fit Analysis</h4>
-                <p className="text-slate-700 text-sm font-semibold leading-relaxed">
+                <p className="text-[var(--cp-text-muted)] text-sm font-semibold leading-relaxed">
                   {finalReport.company_fit_analysis}
                 </p>
               </div>
@@ -455,7 +455,7 @@ function Interview() {
                 <h4 className="font-black text-amber-900 text-xs uppercase tracking-wider mb-3">Recommended Study Topics</h4>
                 <div className="flex flex-wrap gap-2">
                   {finalReport.recommended_topics && finalReport.recommended_topics.map((t, i) => (
-                    <span key={i} className="bg-white border border-amber-200 text-amber-800 px-3 py-1 rounded-full text-xs font-bold">
+                    <span key={i} className="bg-[var(--cp-surface)] border border-amber-200 text-amber-800 px-3 py-1 rounded-full text-xs font-bold">
                       {t}
                     </span>
                   ))}
@@ -466,7 +466,7 @@ function Interview() {
                 <h4 className="font-black text-blue-900 text-xs uppercase tracking-wider mb-3">Next Target Recommendations</h4>
                 <div className="flex flex-wrap gap-2">
                   {finalReport.recommended_next_companies && finalReport.recommended_next_companies.map((c, i) => (
-                    <span key={i} className="bg-white border border-blue-200 text-blue-800 px-3 py-1 rounded-full text-xs font-bold">
+                    <span key={i} className="bg-[var(--cp-surface)] border border-blue-200 text-blue-800 px-3 py-1 rounded-full text-xs font-bold">
                       {c}
                     </span>
                   ))}
@@ -475,25 +475,25 @@ function Interview() {
             </div>
 
             {/* Collapsible Review Answers */}
-            <div className="border border-slate-200 rounded-2xl mb-8 overflow-hidden">
+            <div className="border border-[var(--cp-border)] rounded-2xl mb-8 overflow-hidden">
               <button
                 onClick={() => setShowReview(prev => !prev)}
-                className="w-full bg-slate-50 hover:bg-slate-100 px-6 py-4 flex justify-between items-center transition-all"
+                className="w-full bg-[var(--cp-bg)] hover:bg-[var(--cp-surface2)] px-6 py-4 flex justify-between items-center transition-all"
               >
-                <span className="font-black text-slate-800 text-sm">Review Questions & Submissions</span>
-                {showReview ? <ChevronUp className="h-5 w-5 text-slate-500" /> : <ChevronDown className="h-5 w-5 text-slate-500" />}
+                <span className="font-black text-[var(--cp-text)] text-sm">Review Questions & Submissions</span>
+                {showReview ? <ChevronUp className="h-5 w-5 text-[var(--cp-text-muted)]" /> : <ChevronDown className="h-5 w-5 text-[var(--cp-text-muted)]" />}
               </button>
               
               {showReview && (
-                <div className="p-6 border-t border-slate-200 space-y-6 bg-slate-50/50">
+                <div className="p-6 border-t border-[var(--cp-border)] space-y-6 bg-[var(--cp-bg)]/50">
                   {questions.map((q, idx) => {
                     const qText = typeof q === 'object' ? q.text : q;
                     const isQMcq = typeof q === 'object' && q.options;
                     const ans = submittedAnswers[idx] || "No response recorded";
                     const fdb = feedbacksList[idx] || {};
                     return (
-                      <div key={idx} className="bg-white border border-slate-150 rounded-xl p-5 shadow-sm space-y-4">
-                        <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+                      <div key={idx} className="bg-[var(--cp-surface)] border border-[var(--cp-border)] rounded-xl p-5 shadow-sm space-y-4">
+                        <div className="flex justify-between items-center pb-2 border-b border-[var(--cp-border)]">
                           <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">
                             Question {idx + 1}
                           </span>
@@ -501,19 +501,19 @@ function Interview() {
                             {fdb.overall_score || 0}% Score
                           </span>
                         </div>
-                        <p className="font-bold text-slate-800 text-sm">{qText}</p>
+                        <p className="font-bold text-[var(--cp-text)] text-sm">{qText}</p>
                         
                         {isQMcq && (
-                          <div className="p-3 bg-slate-50 rounded-xl border border-slate-150 space-y-2 text-xs">
+                          <div className="p-3 bg-[var(--cp-bg)] rounded-xl border border-[var(--cp-border)] space-y-2 text-xs">
                             <span className="font-black text-slate-400 uppercase tracking-widest block">MCQ Options:</span>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-600 font-semibold">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[var(--cp-text-muted)] font-semibold">
                               {q.options.map((opt, oIdx) => (
-                                <div key={oIdx} className={`p-2 rounded-lg border ${opt === q.correct_answer ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-white border-slate-200'}`}>
+                                <div key={oIdx} className={`p-2 rounded-lg border ${opt === q.correct_answer ? 'bg-emerald-100 text-emerald-800 border-emerald-200' : 'bg-[var(--cp-surface)] border-[var(--cp-border)]'}`}>
                                   {opt}
                                 </div>
                               ))}
                             </div>
-                            <div className="text-slate-600 font-bold pt-1">
+                            <div className="text-[var(--cp-text-muted)] font-bold pt-1">
                               Correct Choice: <span className="text-emerald-700">{q.correct_answer}</span>
                             </div>
                           </div>
@@ -521,7 +521,7 @@ function Interview() {
                         
                         <div className="space-y-1">
                           <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest block">Your Answer:</span>
-                          <div className="bg-slate-50 p-4 rounded-xl border border-slate-150 text-sm text-slate-700 font-semibold whitespace-pre-wrap leading-relaxed">
+                          <div className="bg-[var(--cp-bg)] p-4 rounded-xl border border-[var(--cp-border)] text-sm text-[var(--cp-text-muted)] font-semibold whitespace-pre-wrap leading-relaxed">
                             {ans}
                           </div>
                         </div>
@@ -547,7 +547,7 @@ function Interview() {
                         
                         <div className="pt-2">
                           <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest block">Evaluator Analysis:</span>
-                          <p className="text-sm font-semibold text-slate-600 mt-1 italic leading-relaxed">
+                          <p className="text-sm font-semibold text-[var(--cp-text-muted)] mt-1 italic leading-relaxed">
                             {fdb.suggestions}
                           </p>
                         </div>
@@ -566,14 +566,14 @@ function Interview() {
             </button>
           </div>
         ) : (
-          <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
-            <div className="bg-slate-50 border-b border-slate-200 p-6 flex flex-col">
+          <div className="bg-[var(--cp-surface)] border border-[var(--cp-border)] rounded-3xl overflow-hidden shadow-sm">
+            <div className="bg-[var(--cp-bg)] border-b border-[var(--cp-border)] p-6 flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-4">
                   {getCompanyLogo(company)}
                   <div>
-                    <h4 className="font-black text-slate-800 leading-tight">{company}</h4>
-                    <span className="text-xs font-semibold text-slate-500">{company} • {mapRoundType(roundType)}</span>
+                    <h4 className="font-black text-[var(--cp-text)] leading-tight">{company}</h4>
+                    <span className="text-xs font-semibold text-[var(--cp-text-muted)]">{company} • {mapRoundType(roundType)}</span>
                   </div>
                 </div>
 
@@ -582,7 +582,7 @@ function Interview() {
                     {currentQuestion?.difficulty || "easy"}
                   </span>
                   
-                  <div className={`flex items-center gap-2 px-4 py-1.5 rounded-lg font-black text-sm ${timeLeft <= 10 && !feedbackState ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-slate-200 text-slate-700'}`}>
+                  <div className={`flex items-center gap-2 px-4 py-1.5 rounded-lg font-black text-sm ${timeLeft <= 10 && !feedbackState ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-slate-200 text-[var(--cp-text-muted)]'}`}>
                     <Clock className="w-4 h-4" />
                     {timeLeft}s
                   </div>
@@ -603,12 +603,12 @@ function Interview() {
               // Per-Question Feedback Card (Real-time Analytics between questions)
               <div className="p-8 space-y-6">
                 <div className="text-center mb-6">
-                  <h3 className="text-xl font-black text-slate-800">Answer Evaluation Result</h3>
+                  <h3 className="text-xl font-black text-[var(--cp-text)]">Answer Evaluation Result</h3>
                   <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Real-time Feedback Analytics</p>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 flex flex-col justify-between">
+                  <div className="bg-[var(--cp-bg)] border border-[var(--cp-border)] rounded-2xl p-6 flex flex-col justify-between">
                     <div>
                       <div className="flex justify-between items-center mb-4">
                         <span className="text-xs font-black text-slate-400 uppercase tracking-wider">Metrics Breakdown</span>
@@ -619,7 +619,7 @@ function Interview() {
                       
                       <div className="space-y-3">
                         <div>
-                          <div className="flex justify-between text-xs font-bold text-slate-500 mb-1">
+                          <div className="flex justify-between text-xs font-bold text-[var(--cp-text-muted)] mb-1">
                             <span>TECHNICAL KNOWLEDGE</span>
                             <span>{feedbackState.technical_score}%</span>
                           </div>
@@ -629,7 +629,7 @@ function Interview() {
                         </div>
 
                         <div>
-                          <div className="flex justify-between text-xs font-bold text-slate-500 mb-1">
+                          <div className="flex justify-between text-xs font-bold text-[var(--cp-text-muted)] mb-1">
                             <span>COMMUNICATION CLARITY</span>
                             <span>{feedbackState.communication_score}%</span>
                           </div>
@@ -639,7 +639,7 @@ function Interview() {
                         </div>
 
                         <div>
-                          <div className="flex justify-between text-xs font-bold text-slate-500 mb-1">
+                          <div className="flex justify-between text-xs font-bold text-[var(--cp-text-muted)] mb-1">
                             <span>CONFIDENCE RATING</span>
                             <span>{feedbackState.confidence_score}%</span>
                           </div>
@@ -649,7 +649,7 @@ function Interview() {
                         </div>
 
                         <div>
-                          <div className="flex justify-between text-xs font-bold text-slate-500 mb-1">
+                          <div className="flex justify-between text-xs font-bold text-[var(--cp-text-muted)] mb-1">
                             <span>PROBLEM SOLVING</span>
                             <span>{feedbackState.problem_solving_score}%</span>
                           </div>
@@ -660,14 +660,14 @@ function Interview() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mt-6 border-t border-slate-200/50 pt-4">
+                    <div className="grid grid-cols-2 gap-4 mt-6 border-t border-[var(--cp-border)]/50 pt-4">
                       <div>
                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Adaptive Difficulty</span>
                         <span className="text-xs font-black uppercase text-indigo-700">{feedbackState.current_difficulty || "medium"}</span>
                       </div>
                       <div>
                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Improvement Rate</span>
-                        <span className={`text-xs font-black ${scoresHistory.length > 1 && (scoresHistory[scoresHistory.length-1] - scoresHistory[scoresHistory.length-2]) >= 0 ? 'text-emerald-600' : 'text-slate-500'}`}>
+                        <span className={`text-xs font-black ${scoresHistory.length > 1 && (scoresHistory[scoresHistory.length-1] - scoresHistory[scoresHistory.length-2]) >= 0 ? 'text-emerald-600' : 'text-[var(--cp-text-muted)]'}`}>
                           {scoresHistory.length > 1 ? (
                             (scoresHistory[scoresHistory.length-1] - scoresHistory[scoresHistory.length-2]) >= 0 ? 
                             `+${scoresHistory[scoresHistory.length-1] - scoresHistory[scoresHistory.length-2]}% Improvement` : 
@@ -681,14 +681,14 @@ function Interview() {
                   <RenderTrendChart history={scoresHistory} />
                 </div>
 
-                <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 space-y-2">
+                <div className="bg-[var(--cp-bg)] border border-[var(--cp-border)] rounded-2xl p-6 space-y-2">
                   <h5 className="text-xs font-black text-indigo-900 uppercase tracking-wider">Evaluation & Suggestions</h5>
-                  <p className="text-sm text-slate-700 font-semibold italic leading-relaxed">
+                  <p className="text-sm text-[var(--cp-text-muted)] font-semibold italic leading-relaxed">
                     "{feedbackState.suggestions}"
                   </p>
                 </div>
 
-                <div className="mt-8 pt-6 border-t border-slate-100 flex justify-end">
+                <div className="mt-8 pt-6 border-t border-[var(--cp-border)] flex justify-end">
                   <button
                     onClick={handleNextQuestion}
                     className="bg-indigo-600 hover:bg-indigo-700 text-white font-black py-3 px-8 rounded-xl transition-all shadow-md flex items-center space-x-2"
@@ -702,7 +702,7 @@ function Interview() {
               // Question Answering Screen
               <div className="p-8">
                 <div className="mb-8">
-                  <h2 className="text-2xl font-black text-slate-800 leading-tight">
+                  <h2 className="text-2xl font-black text-[var(--cp-text)] leading-tight">
                     {questionText}
                   </h2>
                 </div>
@@ -722,7 +722,7 @@ function Interview() {
                         key={idx}
                         disabled={submitting}
                         onClick={() => setUserAnswer(opt)}
-                        className={`w-full text-left p-4 rounded-2xl border transition-all flex items-center justify-between font-bold text-sm leading-relaxed ${userAnswer === opt ? 'bg-indigo-50 border-indigo-500 text-indigo-900 shadow-sm' : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700'}`}
+                        className={`w-full text-left p-4 rounded-2xl border transition-all flex items-center justify-between font-bold text-sm leading-relaxed ${userAnswer === opt ? 'bg-indigo-50 border-indigo-500 text-indigo-900 shadow-sm' : 'bg-[var(--cp-surface)] hover:bg-[var(--cp-bg)] border-[var(--cp-border)] text-[var(--cp-text-muted)]'}`}
                       >
                         <span>{opt}</span>
                         {userAnswer === opt && (
@@ -736,7 +736,7 @@ function Interview() {
                 ) : (
                   <div className="relative mb-6">
                     <textarea
-                      className="w-full h-40 p-5 pr-40 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none font-medium text-slate-700 disabled:opacity-50 text-sm leading-relaxed"
+                      className="w-full h-40 p-5 pr-40 border border-[var(--cp-border)] rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none font-medium text-[var(--cp-text-muted)] disabled:opacity-50 text-sm leading-relaxed"
                       placeholder={transcribing ? 'Transcribing audio...' : 'Type your answer here or use the microphone...'}
                       value={userAnswer}
                       onChange={(e) => setUserAnswer(e.target.value)}
@@ -767,10 +767,10 @@ function Interview() {
                   </div>
                 )}
 
-                <div className="mt-8 pt-6 border-t border-slate-100 flex justify-between items-center">
+                <div className="mt-8 pt-6 border-t border-[var(--cp-border)] flex justify-between items-center">
                   <button
                     onClick={() => setInterviewId(null)}
-                    className="flex items-center text-slate-500 hover:text-slate-800 text-sm font-semibold transition-colors"
+                    className="flex items-center text-[var(--cp-text-muted)] hover:text-[var(--cp-text)] text-sm font-semibold transition-colors"
                   >
                     <ArrowLeft className="h-4 w-4 mr-1.5" />
                     <span>Exit Simulator</span>

@@ -106,7 +106,7 @@ function AIMentor() {
           <Loader2 className="h-10 w-10 text-blue-600 animate-spin mb-4" />
           <div className="flex items-center gap-3">
             <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
-            <span className="text-sm text-slate-500 font-medium">{loadingText}</span>
+            <span className="text-sm text-[var(--cp-text-muted)] font-medium">{loadingText}</span>
           </div>
         </div>
       </Layout>
@@ -115,7 +115,7 @@ function AIMentor() {
 
   return (
     <Layout title="AI Career Mentor">
-      <div className="max-w-4xl mx-auto flex flex-col h-[calc(100vh-8.5rem)] bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+      <div className="max-w-4xl mx-auto flex flex-col h-[calc(100vh-8.5rem)] bg-[var(--cp-surface)] border border-[var(--cp-border)] rounded-3xl overflow-hidden shadow-sm">
         {/* Header */}
         <div className="bg-slate-900 px-6 py-4 flex items-center justify-between border-b border-slate-800 text-white">
           <div className="flex items-center space-x-3">
@@ -130,13 +130,13 @@ function AIMentor() {
               </p>
             </div>
           </div>
-          <span className="text-xs font-semibold bg-white/10 px-3 py-1 rounded-full text-slate-300">
+          <span className="text-xs font-semibold bg-[var(--cp-surface)]/10 px-3 py-1 rounded-full text-slate-300">
             Persistent History Enabled
           </span>
         </div>
 
         {/* Message Panel */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50">
+        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-[var(--cp-bg)]/50">
           {messages.map((message, i) => {
             const isAI = message.sender === 'ai';
             return (
@@ -148,14 +148,14 @@ function AIMentor() {
                 )}
                 <div className={`max-w-[75%] rounded-2xl px-5 py-3.5 shadow-sm text-sm border whitespace-pre-line ${
                   isAI 
-                    ? 'bg-white text-slate-800 border-slate-200/80 rounded-bl-none' 
+                    ? 'bg-[var(--cp-surface)] text-[var(--cp-text)] border-[var(--cp-border)]/80 rounded-bl-none' 
                     : 'bg-blue-600 text-white border-blue-700 rounded-br-none'
                 }`}>
                   {message.text}
                 </div>
                 {!isAI && (
                   <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
-                    <User className="h-4 w-4 text-slate-600" />
+                    <User className="h-4 w-4 text-[var(--cp-text-muted)]" />
                   </div>
                 )}
               </div>
@@ -167,9 +167,9 @@ function AIMentor() {
               <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
                 <Brain className="h-4 w-4 text-blue-600" />
               </div>
-              <div className="bg-white border border-slate-200/85 rounded-2xl rounded-bl-none px-5 py-3.5 shadow-sm flex items-center space-x-3">
+              <div className="bg-[var(--cp-surface)] border border-[var(--cp-border)]/85 rounded-2xl rounded-bl-none px-5 py-3.5 shadow-sm flex items-center space-x-3">
                 <Loader2 className="h-4 w-4 text-slate-400 animate-spin" />
-                <span className="text-sm font-medium text-slate-600">{loadingText}</span>
+                <span className="text-sm font-medium text-[var(--cp-text-muted)]">{loadingText}</span>
               </div>
             </div>
           )}
@@ -177,7 +177,7 @@ function AIMentor() {
         </div>
 
         {/* Suggested Prompts Grid */}
-        <div className="px-6 py-4 bg-white border-t border-slate-100">
+        <div className="px-6 py-4 bg-[var(--cp-surface)] border-t border-[var(--cp-border)]">
           <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Suggested Mentor Tasks</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {suggestedPrompts.map((prompt, i) => {
@@ -186,7 +186,7 @@ function AIMentor() {
                 <button
                   key={i}
                   onClick={() => handleSendMessage(prompt.action)}
-                  className="flex items-center space-x-2.5 px-4 py-2.5 rounded-xl border border-slate-200/70 hover:border-blue-500 hover:bg-blue-50/20 text-left text-xs font-semibold text-slate-700 hover:text-blue-700 transition-all duration-200"
+                  className="flex items-center space-x-2.5 px-4 py-2.5 rounded-xl border border-[var(--cp-border)]/70 hover:border-blue-500 hover:bg-blue-50/20 text-left text-xs font-semibold text-[var(--cp-text-muted)] hover:text-blue-700 transition-all duration-200"
                 >
                   <Icon className="h-4 w-4 text-slate-400 flex-shrink-0" />
                   <span className="truncate">{prompt.text}</span>
@@ -197,10 +197,10 @@ function AIMentor() {
         </div>
 
         {/* Input Bar */}
-        <div className="p-4 bg-white border-t border-slate-100 flex items-center space-x-3">
+        <div className="p-4 bg-[var(--cp-surface)] border-t border-[var(--cp-border)] flex items-center space-x-3">
           <input
             type="text"
-            className="flex-1 px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="flex-1 px-4 py-3 border border-[var(--cp-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             placeholder="Ask your mentor about plans, roadmap suggestions, resume improvement..."
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
