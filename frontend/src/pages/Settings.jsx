@@ -18,7 +18,8 @@ import {
   HelpCircle, 
   Star,
   CheckCircle2,
-  Sparkles
+  Sparkles,
+  MessageSquare
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import '../styles/company.css';
@@ -33,6 +34,10 @@ export default function Settings() {
   const [newPassword, setNewPassword] = useState('');
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
   const [fontSize, setFontSize] = useState(localStorage.getItem('font-size') || 'Medium');
+
+  // Feedback State
+  const [feedbackMsg, setFeedbackMsg] = useState('');
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
 
   // Notifications
   const [emailNotifs, setEmailNotifs] = useState(true);
@@ -186,6 +191,27 @@ export default function Settings() {
     navigate('/login');
   };
 
+  // Submit Feedback
+  const handleFeedbackSubmit = async () => {
+    const msg = feedbackMsg.trim();
+    if (!msg || msg.length < 5) {
+      toast.warn('Feedback must be at least 5 characters long.');
+      return;
+    }
+    
+    setIsSubmittingFeedback(true);
+    try {
+      await api.post('/feedback', { message: msg, section: 'settings' });
+      toast.success('Feedback submitted successfully!');
+      setFeedbackMsg('');
+    } catch (e) {
+      toast.error('Failed to submit feedback.');
+      console.error(e);
+    } finally {
+      setIsSubmittingFeedback(false);
+    }
+  };
+
   const sections = [
     { id: 'Account', label: 'Account Settings', icon: User },
     { id: 'Appearance', label: 'Appearance', icon: Eye },
@@ -193,6 +219,7 @@ export default function Settings() {
     { id: 'Privacy', label: 'Privacy & Data', icon: Shield },
     { id: 'AI', label: 'AI Preferences', icon: Cpu },
     { id: 'System', label: 'System & Info', icon: Info },
+    { id: 'Feedback', label: 'Feedback & Support', icon: MessageSquare },
   ];
 
   return (
@@ -268,8 +295,9 @@ export default function Settings() {
                 <h3 className="cpd-section-title"><User size={20} color="var(--cp-primary)" /> Account Configuration</h3>
                 <p className="cpd-section-text">Modify your profile login credentials and targeted display parameters.</p>
                 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '480px' }}>
-                  <div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '520px' }}>
+                  <div style={{ padding: '20px', background: 'var(--cp-surface2)', borderRadius: '12px', border: '1px solid var(--cp-border)' }}>
+                    <div style={{ marginBottom: '16px' }}>
                     <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--cp-text-muted)', marginBottom: '6px' }}>FULL NAME</label>
                     <input 
                       type="text" 
@@ -293,13 +321,13 @@ export default function Settings() {
 
                   <button 
                     onClick={handleSave}
-                   
                     style={{ alignSelf: 'start', padding: '10px 24px' ,background: 'linear-gradient(135deg, #00d2ff, #3a7bd5)'  }}
                   >
                     Save Changes
                   </button>
+                  </div>
 
-                  <div style={{ borderTop: '1px solid var(--cp-border)', marginTop: '16px', paddingTop: '16px' }}>
+                  <div style={{ padding: '20px', background: 'var(--cp-surface2)', borderRadius: '12px', border: '1px solid var(--cp-border)' }}>
                     <h4 style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: '12px' }}>Security Settings</h4>
                     <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--cp-text-muted)', marginBottom: '6px' }}>NEW PASSWORD</label>
                     <div style={{ display: 'flex', gap: '12px' }}>
@@ -321,17 +349,17 @@ export default function Settings() {
                     </div>
                   </div>
 
-                  <div style={{ borderTop: '1px solid #fee2e2', marginTop: '24px', paddingTop: '16px' }}>
+                  <div style={{ padding: '20px', background: '#fef2f2', borderRadius: '12px', border: '1px solid #fee2e2' }}>
                     <h4 style={{ fontWeight: 700, fontSize: '0.9rem', color: '#dc2626', marginBottom: '6px' }}>Danger Zone</h4>
-                    <p style={{ fontSize: '0.78rem', color: 'var(--cp-text-muted)', marginBottom: '12px' }}>Permanently erase your credentials, transcripts, and dashboard progress.</p>
+                    <p style={{ fontSize: '0.78rem', color: '#b91c1c', marginBottom: '12px' }}>Permanently erase your credentials, transcripts, and dashboard progress.</p>
                     <button 
                       onClick={handleDeleteAccount}
                       style={{
-                        background: '#fee2e2',
+                        background: 'white',
                         color: '#dc2626',
                         border: '1px solid #fca5a5',
                         padding: '10px 20px',
-                        borderRadius: '10px',
+                        borderRadius: '8px',
                         fontSize: '0.85rem',
                         fontWeight: 700,
                         cursor: 'pointer',
@@ -353,9 +381,9 @@ export default function Settings() {
                 <h3 className="cpd-section-title"><Eye size={20} color="var(--cp-primary)" /> Appearance Preferences</h3>
                 <p className="cpd-section-text">Customize the visual styling of the platform interface.</p>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '480px' }}>
-                  <div>
-                    <span style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--cp-text-muted)', marginBottom: '8px' }}>THEME MODE</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '520px' }}>
+                  <div style={{ padding: '20px', background: 'var(--cp-surface2)', borderRadius: '12px', border: '1px solid var(--cp-border)' }}>
+                    <span style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--cp-text-muted)', marginBottom: '12px' }}>THEME MODE</span>
                     <div style={{ display: 'flex', gap: '12px' }}>
                       <button
                         onClick={() => handleThemeChange('light')}
@@ -390,8 +418,8 @@ export default function Settings() {
                     </div>
                   </div>
 
-                  <div>
-                    <span style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--cp-text-muted)', marginBottom: '8px' }}>TEXT FONT SIZE</span>
+                  <div style={{ padding: '20px', background: 'var(--cp-surface2)', borderRadius: '12px', border: '1px solid var(--cp-border)' }}>
+                    <span style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--cp-text-muted)', marginBottom: '12px' }}>TEXT FONT SIZE</span>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       {['Small', 'Medium', 'Large'].map(size => (
                         <button
@@ -516,7 +544,8 @@ export default function Settings() {
                 <h3 className="cpd-section-title"><Cpu size={20} color="var(--cp-primary)" /> AI Interview Customizations</h3>
                 <p className="cpd-section-text">Tune the AI Interview model prompts to align with your targets.</p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', maxWidth: '600px' }}>
+                <div style={{ padding: '20px', background: 'var(--cp-surface2)', borderRadius: '12px', border: '1px solid var(--cp-border)', maxWidth: '600px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--cp-text-muted)', marginBottom: '6px' }}>PREFERRED RECRUITER LEVEL</label>
                     <select 
@@ -567,6 +596,7 @@ export default function Settings() {
                       onChange={(e) => setPrefCompany(e.target.value)}
                     />
                   </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -591,30 +621,43 @@ export default function Settings() {
                     </div>
                   </div>
 
-                  <div style={{ borderTop: '1px solid var(--cp-border)', paddingTop: '16px' }}>
-                    <h4 style={{ fontWeight: 700, fontSize: '0.88rem', marginBottom: '10px' }}>Feedback & Support</h4>
-                    <textarea 
-                      placeholder="Write feedback, system reports, or feature requests here..."
-                      rows={3}
-                      className="cpd-chat-input" 
-                      style={{ width: '100%', borderRadius: '8px', background: 'white', resize: 'none', fontSize: '0.85rem' }}
-                    />
-                    <button 
-                      onClick={() => toast.success('Thank you for your valuable feedback!')}
-                      className="cpd-view-full-btn" 
-                      style={{ marginTop: '8px', padding: '8px 20px', fontSize: '0.825rem' }}
-                    >
-                      Submit Feedback
-                    </button>
-                  </div>
-
-                  <div style={{ borderTop: '1px solid var(--cp-border)', paddingTop: '16px', display: 'flex', justifyContent: 'between', fontSize: '0.8rem', color: 'var(--cp-text-muted)' }}>
+                  <div style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--cp-text-muted)', background: 'var(--cp-surface2)', border: '1px solid var(--cp-border)', borderRadius: '12px' }}>
                     <span>Build: #2026.06.24.01</span>
                     <a href="#" onClick={(e) => { e.preventDefault(); toast.info('Help desk online at support@careerpilot.ai'); }} style={{ color: 'var(--cp-primary)', fontWeight: 600, textDecoration: 'none' }}>
                       Get Help & Support
                     </a>
                   </div>
 
+                </div>
+              </div>
+            )}
+
+            {/* 7. Feedback */}
+            {activeSection === 'Feedback' && (
+              <div>
+                <h3 className="cpd-section-title"><MessageSquare size={20} color="var(--cp-primary)" /> Feedback & Bug Reports</h3>
+                <p className="cpd-section-text">Help us improve CareerPilot AI by submitting your thoughts.</p>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '520px' }}>
+                  <div style={{ background: 'var(--cp-surface2)', padding: '20px', border: '1px solid var(--cp-border)', borderRadius: '12px' }}>
+                    <h4 style={{ fontWeight: 700, fontSize: '0.88rem', marginBottom: '10px' }}>Share your experience</h4>
+                    <textarea 
+                      placeholder="Write feedback, system reports, or feature requests here (min 5 chars)..."
+                      rows={5}
+                      className="cpd-chat-input" 
+                      style={{ width: '100%', borderRadius: '8px', background: 'white', resize: 'none', fontSize: '0.85rem', marginBottom: '16px', padding: '12px' }}
+                      value={feedbackMsg}
+                      onChange={(e) => setFeedbackMsg(e.target.value)}
+                    />
+                    <button 
+                      onClick={handleFeedbackSubmit}
+                      disabled={isSubmittingFeedback}
+                      className="btn-primary" 
+                      style={{ width: '100%', padding: '12px', fontSize: '0.875rem' }}
+                    >
+                      {isSubmittingFeedback ? 'Submitting...' : 'Submit Feedback'}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}

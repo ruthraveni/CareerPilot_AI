@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
-from routes import auth, users, mentor, dashboard, interviews, profile, history, analytics, resume
+from routes import auth, users, mentor, dashboard, interviews, profile, history, analytics, resume, feedback
 
 app = FastAPI(title="CareerPilot AI Backend", version="1.0.0")
 
@@ -30,6 +30,7 @@ app.include_router(profile.router, prefix="/api/profile", tags=["Profile"])
 app.include_router(history.router, prefix="/api/history", tags=["History"])
 app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
 app.include_router(resume.router, prefix="/api/resume", tags=["Resume Analyzer"])
+app.include_router(feedback.router, prefix="/api/feedback", tags=["Feedback"])
 
 from fastapi import Depends
 from config.database import get_collection
