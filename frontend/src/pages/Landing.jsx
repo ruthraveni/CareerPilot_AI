@@ -57,10 +57,10 @@ const Landing = () => {
           
           <div className="hero-social-proof">
             <div className="avatars">
-              <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Student" className="avatar avatar-1" />
-              <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Student" className="avatar avatar-2" />
-              <img src="https://randomuser.me/api/portraits/men/46.jpg" alt="Student" className="avatar avatar-3" />
-              <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Student" className="avatar avatar-4" />
+              <img src="https://images.media.io/gemini-ai-passport-prompt/2.png" alt="Student" className="avatar avatar-1" />
+              <img src="https://ai.tenorshare.com/images/article/imagedetector/passport-size-photo-prompt-gemini-3.jpg" alt="Student" className="avatar avatar-2" />
+              <img src="https://images.tenorshare.ai/article/diagrimo/gemini-ai-prompt-for-id-picture-11.jpg" alt="Student" className="avatar avatar-3" />
+              <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQGbd8QC5wp5BShuuREN3SWM1A4sP1bVJjUcqD2XPWvjaDWBIH3Ok8Yh1s&s=10" alt="Student" className="avatar avatar-4" />
             </div>
             <div className="reviews">
               <div className="stars">★★★★★</div>
