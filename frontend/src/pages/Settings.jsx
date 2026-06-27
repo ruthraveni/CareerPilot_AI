@@ -123,7 +123,8 @@ export default function Settings() {
       }
     } catch (e) {
       console.error('Failed to save appearance', e);
-      toast.error('Failed to save preferences');
+      const errMsg = e.response?.data?.detail || e.message || 'Unknown error';
+      toast.error(`Failed to save preferences: ${errMsg}`);
     }
   };
 

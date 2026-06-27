@@ -11,7 +11,7 @@ class UserPreferencesRequest(BaseModel):
     theme: str
     font_size: str
 
-@router.get("/")
+@router.get("")
 async def get_user_preferences(current_user: dict = Depends(get_current_user)):
     col = get_collection("user_preferences")
     prefs = await col.find_one({"user_id": current_user["id"]}, {"_id": 0})
@@ -25,7 +25,7 @@ async def get_user_preferences(current_user: dict = Depends(get_current_user)):
     
     return prefs
 
-@router.post("/")
+@router.post("")
 async def update_user_preferences(request: UserPreferencesRequest, current_user: dict = Depends(get_current_user)):
     allowed_themes = ["light", "dark"]
     allowed_fonts = ["Small", "Medium", "Large"]
