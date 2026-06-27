@@ -1,5 +1,6 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom';
 import { ProfileProvider } from './context/ProfileContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -37,21 +38,23 @@ import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   return (
-    <ProfileProvider>
-      <RouterProvider router={router} />
-      <ToastContainer 
-        position="bottom-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="dark"
-      />
-    </ProfileProvider>
+    <ThemeProvider>
+      <ProfileProvider>
+        <RouterProvider router={router} />
+        <ToastContainer 
+          position="bottom-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="dark"
+        />
+      </ProfileProvider>
+    </ThemeProvider>
   );
 }
 

@@ -22,6 +22,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { useThemeContext } from '../context/ThemeContext';
 import '../styles/company.css';
 
 export default function Settings() {
@@ -32,8 +33,25 @@ export default function Settings() {
   const [fullName, setFullName] = useState('Ruthra');
   const [email, setEmail] = useState('candidate@careerpilot.ai');
   const [newPassword, setNewPassword] = useState('');
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'light');
-  const [fontSize, setFontSize] = useState(localStorage.getItem('font-size') || 'Medium');
+
+  // Appearance Context & Preview States
+  const { savedTheme, setSavedTheme, savedFontSize, setSavedFontSize, applyThemeToDOM, applyFontSizeToDOM } = useThemeContext();
+  const [previewTheme, setPreviewTheme] = useState(savedTheme);
+  const [previewFontSize, setPreviewFontSize] = useState(savedFontSize);
+  
+  // Keep previews synced with context if context loads later
+  useEffect(() => {
+    setPreviewTheme(savedTheme);
+    setPreviewFontSize(savedFontSize);
+  }, [savedTheme, savedFontSize]);
+
+  // Clean up: if user navigates away, revert DOM to saved state if they didn't save
+  useEffect(() => {
+    return () => {
+      applyThemeToDOM(savedTheme);
+      applyFontSizeToDOM(savedFontSize);
+    };
+  }, [savedTheme, savedFontSize, applyThemeToDOM, applyFontSizeToDOM]);
 
   // Feedback State
   const [feedbackMsg, setFeedbackMsg] = useState('');
@@ -79,23 +97,34 @@ export default function Settings() {
     loadProfile();
   }, []);
 
-  // Handle Theme Toggle
+  // Handle Theme Toggle Preview
   const handleThemeChange = (newTheme) => {
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    if (newTheme === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-      document.documentElement.removeAttribute('data-theme');
-    }
+    setPreviewTheme(newTheme);
+    applyThemeToDOM(newTheme);
   };
 
-  // Handle Font Size Change
+  // Handle Font Size Toggle Preview
   const handleFontSizeChange = (size) => {
-    setFontSize(size);
-    localStorage.setItem('font-size', size);
-    // Simple global class toggle for final-year project detail
-    document.body.style.fontSize = size === 'Small' ? '13px' : size === 'Large' ? '17px' : '15px';
+    setPreviewFontSize(size);
+    applyFontSizeToDOM(size);
+  };
+
+  // Save Appearance to Backend
+  const saveAppearance = async (type) => {
+    try {
+      if (type === 'theme') {
+        await api.post('/user-preferences', { theme: previewTheme, font_size: savedFontSize });
+        setSavedTheme(previewTheme);
+        toast.success('Theme saved successfully');
+      } else {
+        await api.post('/user-preferences', { theme: savedTheme, font_size: previewFontSize });
+        setSavedFontSize(previewFontSize);
+        toast.success('Font size saved successfully');
+      }
+    } catch (e) {
+      console.error('Failed to save appearance', e);
+      toast.error('Failed to save preferences');
+    }
   };
 
   // Account Changes
@@ -421,9 +450,9 @@ export default function Settings() {
                           flex: 1,
                           padding: '12px',
                           borderRadius: '10px',
-                          border: theme === 'light' ? '2px solid var(--cp-primary)' : '1px solid var(--cp-border)',
-                          background: theme === 'light' ? 'var(--cp-primary-light)' : 'white',
-                          color: theme === 'light' ? 'var(--cp-primary)' : 'var(--cp-text)',
+                          border: previewTheme === 'light' ? '2px solid var(--cp-primary)' : '1px solid var(--cp-border)',
+                          background: previewTheme === 'light' ? 'var(--cp-primary-light)' : 'white',
+                          color: previewTheme === 'light' ? 'var(--cp-primary)' : 'var(--cp-text)',
                           fontWeight: 700,
                           cursor: 'pointer'
                         }}
@@ -436,9 +465,9 @@ export default function Settings() {
                           flex: 1,
                           padding: '12px',
                           borderRadius: '10px',
-                          border: theme === 'dark' ? '2px solid var(--cp-primary)' : '1px solid var(--cp-border)',
-                          background: theme === 'dark' ? 'var(--cp-primary-light)' : 'white',
-                          color: theme === 'dark' ? 'var(--cp-primary)' : 'var(--cp-text)',
+                          border: previewTheme === 'dark' ? '2px solid var(--cp-primary)' : '1px solid var(--cp-border)',
+                          background: previewTheme === 'dark' ? 'var(--cp-primary-light)' : 'white',
+                          color: previewTheme === 'dark' ? 'var(--cp-primary)' : 'var(--cp-text)',
                           fontWeight: 700,
                           cursor: 'pointer'
                         }}
@@ -446,24 +475,32 @@ export default function Settings() {
                         🌙 Dark Theme
                       </button>
                     </div>
+                    {previewTheme !== savedTheme && (
+                      <button 
+                        onClick={() => saveAppearance('theme')}
+                        className="save-btn" 
+                        style={{ marginTop: '16px', width: '100%', padding: '12px' }}
+                      >
+                        Save Theme
+                      </button>
+                    )}
                   </div>
 
                   <div style={{ padding: '20px', background: 'var(--cp-surface2)', borderRadius: '12px', border: '1px solid var(--cp-border)' }}>
                     <span style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--cp-text-muted)', marginBottom: '12px' }}>TEXT FONT SIZE</span>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      {['Small', 'Medium', 'Large'].map(size => (
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                      {['Small', 'Medium', 'Large'].map((size) => (
                         <button
                           key={size}
                           onClick={() => handleFontSizeChange(size)}
                           style={{
-                            flex: 1,
-                            padding: '10px',
-                            borderRadius: '8px',
-                            border: fontSize === size ? '2px solid var(--cp-primary)' : '1px solid var(--cp-border)',
-                            background: fontSize === size ? 'var(--cp-primary-light)' : 'white',
-                            color: fontSize === size ? 'var(--cp-primary)' : 'var(--cp-text)',
+                            padding: '8px 16px',
+                            borderRadius: '20px',
+                            border: previewFontSize === size ? '2px solid var(--cp-primary)' : '1px solid var(--cp-border)',
+                            background: previewFontSize === size ? 'var(--cp-primary)' : 'var(--cp-surface)',
+                            color: previewFontSize === size ? 'white' : 'var(--cp-text)',
+                            fontSize: '0.85rem',
                             fontWeight: 600,
-                            fontSize: '0.8rem',
                             cursor: 'pointer'
                           }}
                         >
@@ -471,6 +508,15 @@ export default function Settings() {
                         </button>
                       ))}
                     </div>
+                    {previewFontSize !== savedFontSize && (
+                      <button 
+                        onClick={() => saveAppearance('font')}
+                        className="save-btn" 
+                        style={{ marginTop: '16px', width: '100%', padding: '12px' }}
+                      >
+                        Save Font Size
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
