@@ -175,13 +175,7 @@ export default function FeatureDetail() {
 
         {/* Action Bottom */}
         <div className="flex justify-center border-t border-slate-200 pt-12">
-          <Link 
-            to="/"
-            className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-8 py-4 rounded-xl font-semibold transition-all transform hover:-translate-y-1 shadow-lg shadow-slate-200"
-          >
-            <ArrowLeft size={20} />
-            Back to Home
-          </Link>
+         
         </div>
 
       </main>
