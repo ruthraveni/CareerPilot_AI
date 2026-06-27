@@ -45,13 +45,22 @@ export default function Settings() {
     setPreviewFontSize(savedFontSize);
   }, [savedTheme, savedFontSize]);
 
-  // Clean up: if user navigates away, revert DOM to saved state if they didn't save
+  // Safely track the latest saved preferences for cleanup
+  const savedStateRef = React.useRef({ theme: savedTheme, fontSize: savedFontSize });
+  useEffect(() => {
+    savedStateRef.current = { theme: savedTheme, fontSize: savedFontSize };
+  }, [savedTheme, savedFontSize]);
+
+  // Clean up: if user navigates away, revert DOM to saved state if they didn't save.
+  // Using an empty dependency array ensures this cleanup ONLY runs on unmount.
   useEffect(() => {
     return () => {
-      applyThemeToDOM(savedTheme);
-      applyFontSizeToDOM(savedFontSize);
+      if (applyThemeToDOM && applyFontSizeToDOM) {
+        applyThemeToDOM(savedStateRef.current.theme);
+        applyFontSizeToDOM(savedStateRef.current.fontSize);
+      }
     };
-  }, [savedTheme, savedFontSize, applyThemeToDOM, applyFontSizeToDOM]);
+  }, [applyThemeToDOM, applyFontSizeToDOM]);
 
   // Feedback State
   const [feedbackMsg, setFeedbackMsg] = useState('');
