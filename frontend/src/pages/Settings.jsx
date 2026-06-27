@@ -119,17 +119,12 @@ export default function Settings() {
   };
 
   // Save Appearance to Backend
-  const saveAppearance = async (type) => {
+  const saveAppearance = async () => {
     try {
-      if (type === 'theme') {
-        await api.post('/user-preferences', { theme: previewTheme, font_size: savedFontSize });
-        setSavedTheme(previewTheme);
-        toast.success('Theme saved successfully');
-      } else {
-        await api.post('/user-preferences', { theme: savedTheme, font_size: previewFontSize });
-        setSavedFontSize(previewFontSize);
-        toast.success('Font size saved successfully');
-      }
+      await api.post('/user-preferences', { theme: previewTheme, font_size: previewFontSize });
+      setSavedTheme(previewTheme);
+      setSavedFontSize(previewFontSize);
+      toast.success('Appearance preferences saved successfully');
     } catch (e) {
       console.error('Failed to save appearance', e);
       const errMsg = e.response?.data?.detail || e.message || 'Unknown error';
@@ -485,15 +480,6 @@ export default function Settings() {
                         🌙 Dark Theme
                       </button>
                     </div>
-                    {previewTheme !== savedTheme && (
-                      <button 
-                        onClick={() => saveAppearance('theme')}
-                        className="save-btn" 
-                        style={{ marginTop: '16px', width: '100%', padding: '12px' }}
-                      >
-                        Save Theme
-                      </button>
-                    )}
                   </div>
 
                   <div style={{ padding: '20px', background: 'var(--cp-surface2)', borderRadius: '12px', border: '1px solid var(--cp-border)' }}>
@@ -518,16 +504,17 @@ export default function Settings() {
                         </button>
                       ))}
                     </div>
-                    {previewFontSize !== savedFontSize && (
-                      <button 
-                        onClick={() => saveAppearance('font')}
-                        className="save-btn" 
-                        style={{ marginTop: '16px', width: '100%', padding: '12px' }}
-                      >
-                        Save Font Size
-                      </button>
-                    )}
                   </div>
+                  
+                  {(previewTheme !== savedTheme || previewFontSize !== savedFontSize) && (
+                    <button 
+                      onClick={saveAppearance}
+                      className="save-btn" 
+                      style={{ marginTop: '8px', width: '100%', padding: '12px' }}
+                    >
+                      Save Changes
+                    </button>
+                  )}
                 </div>
               </div>
             )}
