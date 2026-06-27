@@ -1,44 +1,22 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import api from '../utils/api';
 
 const ProfileContext = createContext(null);
 
 export const ProfileProvider = ({ children }) => {
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(!!localStorage.getItem('token'));
-
-  const fetchProfile = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setProfile(null);
-      return;
-    }
-    
-    setLoading(true);
-    try {
+  const token = localStorage.getItem('token');
+  
+  const { data: profile, isLoading: loading, refetch: fetchProfile } = useQuery({
+    queryKey: ['profile'],
+    queryFn: async () => {
       const res = await api.get('/profile');
-      setProfile(res.data);
-    } catch (err) {
-      console.error("Failed to fetch profile in global context:", err);
-      // Fallback: Priority 2 (Registered account data from localStorage)
-      const cachedName = localStorage.getItem('user_name');
-      const cachedEmail = localStorage.getItem('user_email');
-      if (cachedName || cachedEmail) {
-        setProfile({
-          name: cachedName || "User",
-          email: cachedEmail || "",
-          role: localStorage.getItem('user_role') || "user",
-          avatarUrl: null
-        });
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProfile();
-  }, []);
+      return res.data;
+    },
+    enabled: !!token, // Only fetch if we have a token
+    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes caching
+  });
 
   // Compute Priority 1 & Priority 2 fallbacks natively
   const name = profile?.name && profile.name !== "No data available" 

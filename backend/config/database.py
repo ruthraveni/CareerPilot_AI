@@ -19,6 +19,18 @@ except Exception as e:
     logger.exception("Failed to initialize MongoDB client")
     raise
 
+async def init_db_indexes():
+    """Create necessary indexes for optimized performance."""
+    try:
+        await db["users"].create_index("email", unique=True)
+        await db["interviews"].create_index("user_id")
+        await db["chat_history"].create_index("user_id")
+        await db["resume_analyses"].create_index("user_id")
+        await db["user_preferences"].create_index("user_id", unique=True)
+        logger.info("MongoDB indexes successfully created/verified")
+    except Exception as e:
+        logger.error(f"Failed to create MongoDB indexes: {e}")
+
 def get_collection(collection_name: str):
     try:
         return db[collection_name]

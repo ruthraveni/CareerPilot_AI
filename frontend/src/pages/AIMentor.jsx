@@ -99,14 +99,31 @@ function AIMentor() {
     }
   };
 
-  if (loading) {
+  if (loading && messages.length === 0) {
     return (
       <Layout title="AI Career Mentor">
-        <div className="min-h-[60vh] flex flex-col items-center justify-center">
-          <Loader2 className="h-10 w-10 text-blue-600 animate-spin mb-4" />
-          <div className="flex items-center gap-3">
-            <Loader2 className="w-4 h-4 text-slate-400 animate-spin" />
-            <span className="text-sm text-[var(--cp-text-muted)] font-medium">{loadingText}</span>
+        <div className="max-w-4xl mx-auto flex flex-col h-[calc(100vh-8.5rem)] bg-[var(--cp-surface)] border border-[var(--cp-border)] rounded-3xl overflow-hidden shadow-sm">
+          {/* Header Skeleton */}
+          <div className="bg-slate-900 px-6 py-4 flex items-center justify-between border-b border-slate-800">
+            <div className="flex items-center space-x-3">
+              <div className="bg-[var(--cp-border)] p-2.5 rounded-xl h-10 w-10 animate-pulse"></div>
+              <div className="space-y-2">
+                <div className="h-3 bg-[var(--cp-border)] rounded w-32 animate-pulse"></div>
+                <div className="h-2 bg-[var(--cp-border)] rounded w-24 animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Messages Skeleton */}
+          <div className="flex-1 p-6 space-y-6">
+            <div className="flex justify-start items-end space-x-2">
+              <div className="h-8 w-8 rounded-full bg-[var(--cp-border)] animate-pulse"></div>
+              <div className="h-24 bg-[var(--cp-border)] rounded-2xl w-3/4 animate-pulse"></div>
+            </div>
+            <div className="flex justify-end items-end space-x-2">
+              <div className="h-16 bg-[var(--cp-border)] rounded-2xl w-1/2 animate-pulse"></div>
+              <div className="h-8 w-8 rounded-full bg-[var(--cp-border)] animate-pulse"></div>
+            </div>
           </div>
         </div>
       </Layout>

@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
 from routes import auth, users, mentor, dashboard, interviews, profile, history, analytics, resume, feedback, ai_settings, user_preferences
@@ -19,6 +20,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# GZip Compression for performance
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
 app.include_router(users.router, prefix="/api/users", tags=["Users"])
 from routes import admin
@@ -35,9 +39,13 @@ app.include_router(ai_settings.router, prefix="/api/ai-settings", tags=["AI Sett
 app.include_router(user_preferences.router, prefix="/api/user-preferences", tags=["User Preferences"])
 
 from fastapi import Depends
-from config.database import get_collection
+from config.database import get_collection, init_db_indexes
 from bson import ObjectId
 from routes.auth import get_current_user
+
+@app.on_event("startup")
+async def startup_event():
+    await init_db_indexes()
 
 @app.put("/api/update-profile", tags=["Profile"])
 async def update_profile_direct(request: dict, current_user: dict = Depends(get_current_user)):

@@ -1,5 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { useProfile } from '../context/ProfileContext';
 import Layout from '../components/Layout';
 import api from '../utils/api';
 import { checkUserDataAvailability, calculateGlobalReadiness } from '../utils/readinessCalculator';
@@ -11,7 +13,6 @@ import {
   Video, 
   FileText, 
   Building2,
-  Loader2,
   AlertCircle
 } from 'lucide-react';
 import {
@@ -42,12 +43,8 @@ ChartJS.register(
 
 function Dashboard() {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState(null);
-  const [interviews, setInterviews] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  const [userDataStatus, setUserDataStatus] = useState({ hasAnyData: false });
+  
 
   const getWeeklyProgress = (completedIntvs) => {
     const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -81,33 +78,24 @@ function Dashboard() {
     });
   };
 
-  const fetchDashboardAndAnalytics = async () => {
-    try {
-      setLoading(true);
-      const [profileRes, interviewsRes] = await Promise.all([
-        api.get('/profile'),
-        api.get('/interview/interviews')
-      ]);
-      setProfile(profileRes.data);
-      
-      const allIntvs = interviewsRes.data || [];
-      setInterviews(allIntvs);
-      
-      const completedIntvs = allIntvs.filter(i => i.status === 'completed');
-      const status = checkUserDataAvailability(completedIntvs);
-      setUserDataStatus(status);
-      setError(null);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to fetch dashboard data. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { profile } = useProfile();
+  
+  const { data: interviews = [], isLoading: loading, error: queryError } = useQuery({
+    queryKey: ['interviews'],
+    queryFn: async () => {
+      const res = await api.get('/interview/interviews');
+      return res.data;
+    },
+    staleTime: 2 * 60 * 1000 // Cache for 2 mins
+  });
 
-  useEffect(() => {
-    fetchDashboardAndAnalytics();
-  }, []);
+  const error = queryError ? 'Failed to fetch dashboard data. Please try again.' : null;
+
+  const userDataStatus = useMemo(() => {
+    if (!interviews.length) return { hasAnyData: false };
+    const completedIntvs = interviews.filter(i => i.status === 'completed');
+    return checkUserDataAvailability(completedIntvs);
+  }, [interviews]);
 
   // Dynamic metrics calculation
   const metrics = useMemo(() => {
@@ -193,12 +181,33 @@ function Dashboard() {
     };
   }, [interviews]);
 
-  if (loading) {
+  if (loading && !interviews.length) {
     return (
-      <Layout title="Dashboard">
-        <div className="min-h-[60vh] flex flex-col items-center justify-center">
-          <Loader2 className="h-10 w-10 text-blue-600 animate-spin mb-4" />
-          <span className="text-[var(--cp-text-muted)] font-medium">Loading your dashboard...</span>
+      <Layout>
+        <div className="max-w-7xl mx-auto space-y-6">
+          {/* Welcome Skeleton */}
+          <div className="flex justify-between items-center bg-[var(--cp-surface)] border border-[var(--cp-border)] rounded-2xl p-6 md:p-8 shadow-sm">
+            <div className="space-y-3 w-1/2">
+              <div className="h-8 bg-[var(--cp-border)] rounded w-3/4 animate-pulse"></div>
+              <div className="h-4 bg-[var(--cp-border)] rounded w-1/2 animate-pulse"></div>
+            </div>
+          </div>
+          
+          {/* Metrics Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="bg-[var(--cp-surface)] border border-[var(--cp-border)] rounded-2xl p-6 shadow-sm animate-pulse">
+                <div className="h-4 bg-[var(--cp-border)] rounded w-1/2 mb-4"></div>
+                <div className="h-8 bg-[var(--cp-border)] rounded w-1/3"></div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Charts Skeleton */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 bg-[var(--cp-surface)] border border-[var(--cp-border)] rounded-2xl p-6 shadow-sm animate-pulse h-80"></div>
+            <div className="bg-[var(--cp-surface)] border border-[var(--cp-border)] rounded-2xl p-6 shadow-sm animate-pulse h-80"></div>
+          </div>
         </div>
       </Layout>
     );

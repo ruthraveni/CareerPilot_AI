@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import api from '../utils/api';
 import { useProfile } from '../context/ProfileContext';
 
@@ -11,6 +12,7 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { fetchProfile } = useProfile();
+  const queryClient = useQueryClient();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -37,6 +39,16 @@ function Login() {
         localStorage.setItem('user_role', response.data.user.role || 'user');
       }
       await fetchProfile();
+      
+      // Prefetch Dashboard data
+      queryClient.prefetchQuery({
+        queryKey: ['dashboardStats'],
+        queryFn: async () => {
+          const res = await api.get('/dashboard/stats');
+          return res.data;
+        }
+      });
+      
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.detail || 'Incorrect email or password.');
