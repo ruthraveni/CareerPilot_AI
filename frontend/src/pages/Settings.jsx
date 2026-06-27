@@ -45,12 +45,13 @@ export default function Settings() {
   const [studyReminders, setStudyReminders] = useState(false);
 
   // AI Preferences
-  const [prefDifficulty, setPrefDifficulty] = useState('Medium');
+  const [prefDifficulty, setPrefDifficulty] = useState('Medium (Associate)');
   const [prefLanguage, setPrefLanguage] = useState('English');
   const [prefRole, setPrefRole] = useState('Software Engineer');
   const [prefCompany, setPrefCompany] = useState('Google');
+  const [savingAiField, setSavingAiField] = useState(null); // Track which field is saving
 
-  // Load user details
+  // Load user details and AI settings
   useEffect(() => {
     async function loadProfile() {
       try {
@@ -58,11 +59,21 @@ export default function Settings() {
         if (res.data) {
           setFullName(res.data.name || res.data.fullName);
           setEmail(res.data.email);
-          setPrefRole(res.data.targetRole);
-          setPrefCompany(res.data.dreamCompany);
         }
       } catch (e) {
         console.error('Failed to load profile details in settings:', e);
+      }
+      
+      try {
+        const aiRes = await api.get('/ai-settings');
+        if (aiRes.data) {
+          setPrefDifficulty(aiRes.data.preferred_recruiter_level || 'Medium (Associate)');
+          setPrefLanguage(aiRes.data.interview_language || 'English');
+          setPrefRole(aiRes.data.primary_target_role || 'Software Engineer');
+          setPrefCompany(aiRes.data.primary_target_company || 'Google');
+        }
+      } catch (e) {
+        console.error('Failed to load AI settings:', e);
       }
     }
     loadProfile();
@@ -209,6 +220,25 @@ export default function Settings() {
       console.error(e);
     } finally {
       setIsSubmittingFeedback(false);
+    }
+  };
+
+  // Save specific AI Setting
+  const handleSaveAiSetting = async (field, value) => {
+    if (!value || value.trim() === '') {
+      toast.warn('Value cannot be empty.');
+      return;
+    }
+    
+    setSavingAiField(field);
+    try {
+      await api.post('/ai-settings', { field, value });
+      toast.success('Setting updated successfully!');
+    } catch (e) {
+      toast.error(e.response?.data?.detail || 'Failed to update setting.');
+      console.error(e);
+    } finally {
+      setSavingAiField(null);
     }
   };
 
@@ -545,56 +575,97 @@ export default function Settings() {
                 <p className="cpd-section-text">Tune the AI Interview model prompts to align with your targets.</p>
 
                 <div style={{ padding: '20px', background: 'var(--cp-surface2)', borderRadius: '12px', border: '1px solid var(--cp-border)', maxWidth: '600px' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--cp-text-muted)', marginBottom: '6px' }}>PREFERRED RECRUITER LEVEL</label>
-                    <select 
-                      className="cpd-chat-input" 
-                      style={{ width: '100%', borderRadius: '8px', padding: '10px', background: 'white' }}
-                      value={prefDifficulty}
-                      onChange={(e) => setPrefDifficulty(e.target.value)}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px' }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--cp-text-muted)', marginBottom: '6px' }}>PREFERRED RECRUITER LEVEL</label>
+                      <select 
+                        className="cpd-chat-input" 
+                        style={{ width: '100%', borderRadius: '8px', padding: '10px', background: 'white' }}
+                        value={prefDifficulty}
+                        onChange={(e) => setPrefDifficulty(e.target.value)}
+                      >
+                        <option value="Entry">Entry</option>
+                        <option value="Medium (Associate)">Medium (Associate)</option>
+                        <option value="Senior">Senior</option>
+                        <option value="Lead">Lead</option>
+                      </select>
+                    </div>
+                    <button 
+                      className="btn-primary" 
+                      style={{ padding: '10px 16px', fontSize: '0.8rem', height: '42px', whiteSpace: 'nowrap' }}
+                      onClick={() => handleSaveAiSetting('preferred_recruiter_level', prefDifficulty)}
+                      disabled={savingAiField === 'preferred_recruiter_level'}
                     >
-                      <option value="Easy">Easy (Entry Level)</option>
-                      <option value="Medium">Medium (Associate)</option>
-                      <option value="Hard">Hard (Senior SDE)</option>
-                    </select>
+                      {savingAiField === 'preferred_recruiter_level' ? 'Saving...' : 'Save'}
+                    </button>
                   </div>
 
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--cp-text-muted)', marginBottom: '6px' }}>INTERVIEW LANGUAGE</label>
-                    <select 
-                      className="cpd-chat-input" 
-                      style={{ width: '100%', borderRadius: '8px', padding: '10px', background: 'white' }}
-                      value={prefLanguage}
-                      onChange={(e) => setPrefLanguage(e.target.value)}
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px' }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--cp-text-muted)', marginBottom: '6px' }}>INTERVIEW LANGUAGE</label>
+                      <select 
+                        className="cpd-chat-input" 
+                        style={{ width: '100%', borderRadius: '8px', padding: '10px', background: 'white' }}
+                        value={prefLanguage}
+                        onChange={(e) => setPrefLanguage(e.target.value)}
+                      >
+                        <option value="English">English</option>
+                        <option value="Tamil">Tamil</option>
+                        <option value="Hindi">Hindi</option>
+                        <option value="Mixed (English + Tamil)">Mixed (English + Tamil)</option>
+                      </select>
+                    </div>
+                    <button 
+                      className="btn-primary" 
+                      style={{ padding: '10px 16px', fontSize: '0.8rem', height: '42px', whiteSpace: 'nowrap' }}
+                      onClick={() => handleSaveAiSetting('interview_language', prefLanguage)}
+                      disabled={savingAiField === 'interview_language'}
                     >
-                      <option value="English">English</option>
-                      <option value="Spanish">Spanish</option>
-                      <option value="German">German</option>
-                      <option value="Hindi">Hindi</option>
-                    </select>
+                      {savingAiField === 'interview_language' ? 'Saving...' : 'Save'}
+                    </button>
                   </div>
 
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--cp-text-muted)', marginBottom: '6px' }}>PRIMARY TARGET ROLE</label>
-                    <input 
-                      type="text" 
-                      className="cpd-chat-input" 
-                      style={{ width: '100%', borderRadius: '8px', background: 'white' }}
-                      value={prefRole}
-                      onChange={(e) => setPrefRole(e.target.value)}
-                    />
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px' }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--cp-text-muted)', marginBottom: '6px' }}>PRIMARY TARGET ROLE</label>
+                      <input 
+                        type="text" 
+                        className="cpd-chat-input" 
+                        style={{ width: '100%', borderRadius: '8px', background: 'white' }}
+                        value={prefRole}
+                        onChange={(e) => setPrefRole(e.target.value)}
+                      />
+                    </div>
+                    <button 
+                      className="btn-primary" 
+                      style={{ padding: '10px 16px', fontSize: '0.8rem', height: '42px', whiteSpace: 'nowrap' }}
+                      onClick={() => handleSaveAiSetting('primary_target_role', prefRole)}
+                      disabled={savingAiField === 'primary_target_role'}
+                    >
+                      {savingAiField === 'primary_target_role' ? 'Saving...' : 'Save'}
+                    </button>
                   </div>
 
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--cp-text-muted)', marginBottom: '6px' }}>PRIMARY TARGET COMPANY</label>
-                    <input 
-                      type="text" 
-                      className="cpd-chat-input" 
-                      style={{ width: '100%', borderRadius: '8px', background: 'white' }}
-                      value={prefCompany}
-                      onChange={(e) => setPrefCompany(e.target.value)}
-                    />
+                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '12px' }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--cp-text-muted)', marginBottom: '6px' }}>PRIMARY TARGET COMPANY</label>
+                      <input 
+                        type="text" 
+                        className="cpd-chat-input" 
+                        style={{ width: '100%', borderRadius: '8px', background: 'white' }}
+                        value={prefCompany}
+                        onChange={(e) => setPrefCompany(e.target.value)}
+                      />
+                    </div>
+                    <button 
+                      className="btn-primary" 
+                      style={{ padding: '10px 16px', fontSize: '0.8rem', height: '42px', whiteSpace: 'nowrap' }}
+                      onClick={() => handleSaveAiSetting('primary_target_company', prefCompany)}
+                      disabled={savingAiField === 'primary_target_company'}
+                    >
+                      {savingAiField === 'primary_target_company' ? 'Saving...' : 'Save'}
+                    </button>
                   </div>
                   </div>
                 </div>
