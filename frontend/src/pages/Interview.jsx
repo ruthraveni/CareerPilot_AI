@@ -57,26 +57,42 @@ function Interview() {
   
   const speechRecognitionRef = useRef(null);
 
+  const languageTemplates = {
+    c: "#include <stdio.h>\n\nint main() {\n\n    return 0;\n}",
+    cpp: "#include <iostream>\nusing namespace std;\n\nint main() {\n\n    return 0;\n}",
+    java: "public class Main {\n    public static void main(String[] args) {\n\n    }\n}",
+    python: "def solve():\n    pass\n\nif __name__ == \"__main__\":\n    solve()",
+    javascript: "function solve() {\n\n}\n\nsolve();"
+  };
+
   // Auto-save source code
   useEffect(() => {
     if (sourceCode) {
-      localStorage.setItem(`interview_code_${interviewId || 'draft'}`, sourceCode);
+      localStorage.setItem(`interview_code_${interviewId || 'draft'}_q${currentIdx}`, sourceCode);
     }
-  }, [sourceCode, interviewId]);
+  }, [sourceCode, interviewId, currentIdx]);
 
   useEffect(() => {
-    const savedCode = localStorage.getItem(`interview_code_${interviewId || 'draft'}`);
-    if (savedCode) setSourceCode(savedCode);
-  }, [interviewId]);
+    const savedCode = localStorage.getItem(`interview_code_${interviewId || 'draft'}_q${currentIdx}`);
+    if (savedCode) {
+      setSourceCode(savedCode);
+    } else {
+      setSourceCode(languageTemplates[selectedLanguage]);
+    }
+  }, [interviewId, currentIdx]);
 
   const handleLanguageChange = (e) => {
     const newLang = e.target.value;
-    if (sourceCode.trim() !== '') {
-      if (!window.confirm("Changing the language might reset syntax highlighting for your current code. Are you sure?")) {
+    const currentCode = sourceCode.trim();
+    const isTemplate = Object.values(languageTemplates).some(t => t.trim() === currentCode);
+    
+    if (currentCode !== '' && !isTemplate) {
+      if (!window.confirm("Changing the language will replace your current code with a starter template. Are you sure?")) {
         return;
       }
     }
     setSelectedLanguage(newLang);
+    setSourceCode(languageTemplates[newLang] || '');
   };
 
   const mapRoundType = (round) => {
@@ -194,6 +210,10 @@ function Interview() {
   const handleNextQuestion = () => {
     setFeedbackState(null);
     setUserAnswer('');
+    
+    // For coding rounds, the useEffect on currentIdx will reset the sourceCode
+    // if there is no saved draft for the next question.
+    
     setCurrentIdx(prev => prev + 1);
     setTimeLeft(timerLimit);
     setTimerActive(true);
