@@ -1536,7 +1536,7 @@ async def transcribe_audio(file: UploadFile = File(...), current_user: dict = De
     if not openai_client:
         if os.path.exists(temp_filename):
             os.remove(temp_filename)
-        return {"text": "I am explaining the concepts with full technical detail and structured code logic."}
+        return {"text": ""}
         
     try:
         with open(temp_filename, "rb") as audio_file:

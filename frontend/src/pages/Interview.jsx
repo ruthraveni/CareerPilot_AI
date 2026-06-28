@@ -199,6 +199,34 @@ function Interview() {
   };
 
   const startRecording = async () => {
+    // Native SpeechRecognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      try {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        
+        recognition.onresult = (event) => {
+          let currentTranscript = '';
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            currentTranscript += event.results[i][0].transcript;
+          }
+          if (currentTranscript) {
+             setUserAnswer(prev => prev + ' ' + currentTranscript);
+          }
+        };
+        
+        recognition.start();
+        speechRecognitionRef.current = recognition;
+        setRecording(true);
+        return;
+      } catch (err) {
+        console.error("SpeechRecognition error:", err);
+      }
+    }
+    
+    // Fallback
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
@@ -224,6 +252,11 @@ function Interview() {
   };
 
   const stopRecording = () => {
+    if (speechRecognitionRef.current && recording) {
+       speechRecognitionRef.current.stop();
+       setRecording(false);
+       return;
+    }
     if (mediaRecorderRef.current && recording) {
       mediaRecorderRef.current.stop();
       setRecording(false);
@@ -766,6 +799,48 @@ function Interview() {
                   </h2>
                 </div>
 
+                {mapRoundType(roundType) === 'Coding' && (
+                  <div className="coding-section mb-6">
+                    <div className="flex justify-between items-center mb-2">
+                      <label className="text-sm font-medium text-[var(--cp-text-muted)] flex items-center gap-2">
+                        <Square className="h-4 w-4" /> Programming Language
+                      </label>
+                      <select 
+                        value={selectedLanguage} 
+                        onChange={handleLanguageChange}
+                        className="bg-[var(--cp-surface)] border border-[var(--cp-border)] rounded-xl px-3 py-1.5 text-sm text-[var(--cp-text)] focus:ring-2 focus:ring-indigo-500 outline-none"
+                      >
+                        <option value="c">C</option>
+                        <option value="cpp">C++</option>
+                        <option value="java">Java</option>
+                        <option value="python">Python</option>
+                        <option value="javascript">JavaScript</option>
+                      </select>
+                    </div>
+                    <div className="editor-container border border-[var(--cp-border)] rounded-xl overflow-hidden bg-[#1e1e1e] shadow-inner">
+                      <Editor
+                        value={sourceCode}
+                        onValueChange={code => setSourceCode(code)}
+                        highlight={code => Prism.highlight(
+                          code, 
+                          Prism.languages[selectedLanguage === 'c' || selectedLanguage === 'cpp' ? 'cpp' : selectedLanguage] || Prism.languages.javascript, 
+                          selectedLanguage
+                        )}
+                        padding={15}
+                        style={{
+                          fontFamily: '"Fira Code", "Fira Mono", monospace',
+                          fontSize: 14,
+                          minHeight: '250px',
+                          backgroundColor: '#1e1e1e',
+                          color: '#d4d4d4',
+                          outline: 'none'
+                        }}
+                        className="code-editor"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {timeLeft === 0 && !feedbackState && (
                   <div className="mb-6 bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl flex items-center gap-3">
                     <AlertTriangle className="h-5 w-5 flex-shrink-0" />
@@ -796,7 +871,7 @@ function Interview() {
                   <div className="relative mb-6">
                     <textarea
                       className="w-full h-40 p-5 pr-40 border border-[var(--cp-border)] rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none font-medium text-[var(--cp-text-muted)] disabled:opacity-50 text-sm leading-relaxed"
-                      placeholder={transcribing ? 'Transcribing audio...' : 'Type your answer here or use the microphone...'}
+                      placeholder={transcribing ? 'Transcribing audio...' : (mapRoundType(roundType) === 'Coding' ? 'Explain your code verbally or type here...' : 'Type your answer here or use the microphone...')}
                       value={userAnswer}
                       onChange={(e) => setUserAnswer(e.target.value)}
                       disabled={submitting || transcribing || feedbackState}
