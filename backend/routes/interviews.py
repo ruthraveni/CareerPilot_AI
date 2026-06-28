@@ -1267,9 +1267,13 @@ async def start_interview(request: InterviewStartRequest, current_user: dict = D
     
     first_diff = questions[0].get("difficulty", "easy") if isinstance(questions[0], dict) else "easy"
     
+    users_col = get_collection("users")
+    user_record = await users_col.find_one({"_id": ObjectId(current_user["id"])})
+    user_name = user_record.get("name") if user_record else "Unknown"
+    
     new_interview = {
         "user_id": current_user["id"],
-        "user_name": current_user.get("name") or "Unknown",
+        "user_name": user_name,
         "role": request.role,
         "company": request.company,
         "round_type": request.round_type,

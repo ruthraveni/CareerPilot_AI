@@ -94,12 +94,16 @@ async def submit_rating(feature_id: str, request: RatingSubmitRequest, current_u
     Submit or update a rating for a feature. Enforces 1 rating per user per feature via upsert.
     """
     ratings_col = get_collection("ratings")
+    users_col = get_collection("users")
+    
+    user_record = await users_col.find_one({"_id": ObjectId(current_user["id"])})
+    user_name = user_record.get("name") if user_record else "Unknown"
     
     update_doc = {
         "$set": {
             "rating": request.rating,
             "comment": request.comment,
-            "user_name": current_user.get("name") or "Unknown",
+            "user_name": user_name,
             "updated_at": datetime.utcnow()
         },
         "$setOnInsert": {
