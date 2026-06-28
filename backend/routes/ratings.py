@@ -60,6 +60,34 @@ async def get_feature_rating_stats(feature_id: str, current_user: dict | None = 
             
     return stats
 
+@router.get("/global-stats")
+async def get_global_rating_stats():
+    """
+    Get dynamic rating stats across all features for the homepage.
+    """
+    ratings_col = get_collection("ratings")
+    
+    pipeline = [
+        {"$group": {
+            "_id": None,
+            "average": {"$avg": "$rating"},
+            "total": {"$sum": 1}
+        }}
+    ]
+    cursor = ratings_col.aggregate(pipeline)
+    results = await cursor.to_list(length=1)
+    
+    stats = {
+        "average": 0.0,
+        "total": 0
+    }
+    
+    if results:
+        stats["average"] = round(results[0]["average"], 1)
+        stats["total"] = results[0]["total"]
+        
+    return stats
+
 @router.post("/{feature_id}")
 async def submit_rating(feature_id: str, request: RatingSubmitRequest, current_user: dict = Depends(get_current_user)):
     """

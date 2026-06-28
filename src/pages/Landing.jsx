@@ -1,5 +1,7 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useMemo } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import api from '../utils/api';
 import { 
   Bot, 
   FileText, 
@@ -9,12 +11,47 @@ import {
   Target,
   CheckCircle2,
   TrendingUp,
-  BrainCircuit
+  BrainCircuit,
+  Star
 } from 'lucide-react';
 import './Landing.css';
 
 const Landing = () => {
   const navigate = useNavigate();
+
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ['global-stats'],
+    queryFn: async () => {
+      try {
+        const res = await api.get('/ratings/global-stats');
+        return res.data;
+      } catch (err) {
+        return { average: 0, total: 0 };
+      }
+    },
+    staleTime: 60000, // 1 min
+    refetchOnWindowFocus: false,
+  });
+
+  const renderStars = () => {
+    if (isLoading || !stats) return null;
+    if (stats.total === 0) return null;
+    
+    const stars = [];
+    const rating = stats.average;
+    for (let i = 1; i <= 5; i++) {
+      stars.push(
+        <Star
+          key={i}
+          size={16}
+          fill={i <= rating ? '#fbbf24' : 'transparent'}
+          color={i <= rating ? '#fbbf24' : '#64748b'}
+          className={i <= rating ? 'text-amber-400' : 'text-slate-400'}
+        />
+      );
+    }
+    return <div className="stars flex gap-1">{stars}</div>;
+  };
 
   return (
     <div className="landing-container">
@@ -57,14 +94,25 @@ const Landing = () => {
           
           <div className="hero-social-proof">
             <div className="avatars">
-              <div className="avatar avatar-1"></div>
-              <div className="avatar avatar-2"></div>
-              <div className="avatar avatar-3"></div>
-              <div className="avatar avatar-4"></div>
+              <img src="https://images.media.io/gemini-ai-passport-prompt/2.png" alt="Student" className="avatar avatar-1" />
+              <img src="https://ai.tenorshare.com/images/article/imagedetector/passport-size-photo-prompt-gemini-3.jpg" alt="Student" className="avatar avatar-2" />
+              <img src="https://images.tenorshare.ai/article/diagrimo/gemini-ai-prompt-for-id-picture-11.jpg" alt="Student" className="avatar avatar-3" />
+              <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQGbd8QC5wp5BShuuREN3SWM1A4sP1bVJjUcqD2XPWvjaDWBIH3Ok8Yh1s&s=10" alt="Student" className="avatar avatar-4" />
             </div>
             <div className="reviews">
-              <div className="stars">★★★★★</div>
-              <p>4.8/5 from 1000+ students</p>
+              {isLoading ? (
+                <div className="flex flex-col gap-2">
+                  <div className="h-4 w-24 bg-white/20 rounded animate-pulse"></div>
+                  <div className="h-4 w-32 bg-white/10 rounded animate-pulse"></div>
+                </div>
+              ) : stats?.total > 0 ? (
+                <>
+                  {renderStars()}
+                  <p>{stats.average.toFixed(1)}/5 from {stats.total} student{stats.total !== 1 ? 's' : ''}</p>
+                </>
+              ) : (
+                <p className="text-sm text-slate-300">No ratings yet. Be the first to rate!</p>
+              )}
             </div>
           </div>
         </div>
