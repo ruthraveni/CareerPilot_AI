@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import Layout from '../components/Layout';
 import api from '../utils/api';
-import ReactSimpleCodeEditor from 'react-simple-code-editor';
-const Editor = ReactSimpleCodeEditor.default || ReactSimpleCodeEditor;
+import CodeEditor from '@uiw/react-textarea-code-editor';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';
@@ -838,23 +837,19 @@ function Interview() {
                         <option value="javascript">JavaScript</option>
                       </select>
                     </div>
-                    <div className="editor-container border border-[var(--cp-border)] rounded-xl overflow-hidden bg-[#1e1e1e] shadow-inner">
-                      <Editor
+                    <div className="editor-container border border-[var(--cp-border)] rounded-xl overflow-hidden bg-[#1e1e1e] shadow-inner" style={{ minHeight: '250px' }}>
+                      <CodeEditor
                         value={sourceCode}
-                        onValueChange={code => setSourceCode(code)}
-                        highlight={code => Prism.highlight(
-                          code, 
-                          Prism.languages[selectedLanguage === 'c' || selectedLanguage === 'cpp' ? 'cpp' : selectedLanguage] || Prism.languages.javascript, 
-                          selectedLanguage
-                        )}
+                        language={selectedLanguage === 'c' || selectedLanguage === 'cpp' ? 'cpp' : selectedLanguage}
+                        placeholder="Please enter your code."
+                        onChange={(evn) => setSourceCode(evn.target.value)}
                         padding={15}
                         style={{
-                          fontFamily: '"Fira Code", "Fira Mono", monospace',
+                          fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
                           fontSize: 14,
-                          minHeight: '250px',
                           backgroundColor: '#1e1e1e',
                           color: '#d4d4d4',
-                          outline: 'none'
+                          minHeight: '250px',
                         }}
                         className="code-editor"
                       />
