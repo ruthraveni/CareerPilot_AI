@@ -1269,6 +1269,7 @@ async def start_interview(request: InterviewStartRequest, current_user: dict = D
     
     new_interview = {
         "user_id": current_user["id"],
+        "user_name": current_user.get("name") or "Unknown",
         "role": request.role,
         "company": request.company,
         "round_type": request.round_type,
