@@ -99,6 +99,7 @@ async def submit_rating(feature_id: str, request: RatingSubmitRequest, current_u
         "$set": {
             "rating": request.rating,
             "comment": request.comment,
+            "user_name": current_user.get("name") or "Unknown",
             "updated_at": datetime.utcnow()
         },
         "$setOnInsert": {
