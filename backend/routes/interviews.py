@@ -23,6 +23,8 @@ load_dotenv()
 
 # Configure Gemini
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+_generation_cache = {}
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 
@@ -1078,96 +1080,70 @@ async def generate_gemini_questions(role: str, company: str, round_type: str, qu
         if ai_settings.get("preferred_recruiter_level") == "Lead":
             question_format_instruction += "\nIMPORTANT: The candidate is applying for a 'Lead' level role. Focus heavily on system architecture, team leadership, high-level design tradeoffs, and complex scaling issues."
 
-    generated = []
-    used_questions = set()
-    profile_info_str = f" {profile_info}" if profile_info else ""
+    global _generation_cache
+    cache_key = f"{role}_{company}_{round_clean}_{question_count}_{fixed_difficulty}_{ai_settings.get('interview_language') if ai_settings else ''}"
+    if cache_key in _generation_cache:
+        logger.info(f"Using cached questions for {cache_key}")
+        return _generation_cache[cache_key]
+
+    difficulties = [cfg["difficulty"] for cfg in configs]
     
-    for cfg in configs:
-        q_num = cfg["question_number"]
-        q_diff = cfg["difficulty"]
-        success = False
-        
-        if GEMINI_API_KEY:
-            for retry in range(3):
-                try:
-                    prompt = (
-                        f"Generate exactly ONE interview question matching this configuration:\n"
-                        f"- Company: {company}\n"
-                        f"- Role: {role}\n"
-                        f"- Interview Round: {round_clean}\n"
-                        f"- Difficulty: {q_diff}\n"
-                        f"- Question Number: {q_num}\n\n"
-                        f"{company_style}\n"
-                        f"{profile_info_str}\n"
-                        f"{question_format_instruction}\n"
-                        f"Make sure the question does not match any of these recently used questions: {list(used_questions)}.\n"
-                        f"Return the output as a raw JSON object. Do not include markdown formatting or json block wrappers."
-                    )
+    prompt = (
+        f"Generate exactly {question_count} interview questions for the following scenario:\n"
+        f"- Company: {company}\n"
+        f"- Role: {role}\n"
+        f"- Interview Round: {round_clean}\n"
+        f"- Required Difficulties in order: {difficulties}\n\n"
+        f"{company_style}\n"
+        f"{profile_info_str}\n"
+        f"{question_format_instruction}\n"
+        f"Return the output as a raw JSON array of objects. Do not include markdown formatting or json block wrappers."
+    )
+    
+    generated = []
+    if GEMINI_API_KEY:
+        for retry in range(3):
+            try:
+                text = await ai_client.generate_content(
+                    prompt=prompt,
+                    user_id="system",
+                    endpoint="/interview/generate_questions",
+                    model_name="gemini-2.5-flash"
+                )
+                text = text.strip()
+                if text.startswith("```"):
+                    text = re.sub(r"^```[a-z]*\n?", "", text)
+                    text = re.sub(r"\n?```$", "", text)
                     
-                    text = await ai_client.generate_content(
-                        prompt=prompt,
-                        user_id="system",
-                        endpoint="/interview/generate_questions",
-                        model_name="gemini-2.5-flash"
-                    )
-                    text = text.strip()
-                    
-                    if text.startswith("```"):
-                        text = re.sub(r"^```[a-z]*\n?", "", text)
-                        text = re.sub(r"\n?```$", "", text)
-                        
-                    item = json.loads(text)
-                    if isinstance(item, dict):
-                        # Enforce configs
-                        item["difficulty"] = q_diff
-                        if round_clean == "Aptitude":
-                            item["type"] = "mcq"
-                        elif round_clean == "Coding":
-                            item["type"] = "coding"
-                        else:
-                            item["type"] = "descriptive"
-                            
-                        # Validate question context
-                        is_valid = validate_question_context(item, company, role, round_clean)
-                        if is_valid and item.get("text") not in used_questions:
+                items = json.loads(text)
+                if isinstance(items, list) and len(items) == question_count:
+                    for i, item in enumerate(items):
+                        if isinstance(item, dict):
+                            item["difficulty"] = difficulties[i]
+                            if round_clean == "Aptitude":
+                                item["type"] = "mcq"
+                            elif round_clean == "Coding":
+                                item["type"] = "coding"
+                            else:
+                                item["type"] = "descriptive"
                             generated.append(item)
-                            used_questions.add(item.get("text"))
-                            success = True
-                            break
-                        else:
-                            logger.info(f"Question validation failed (Retry {retry + 1}/3) for round {round_clean}. Question text: {item.get('text', '')}")
-                except Exception as e:
-                    logger.warning(f"Retry {retry + 1}/3 failed for question {q_num}: {e}")
-                    
-        # Fallback if Gemini could not generate a valid question after retries
-        if not success:
-            q = get_fallback_question_for_all_inputs(role, company, round_clean, q_diff, used_questions)
-            q["difficulty"] = q_diff
-            generated.append(q)
-            used_questions.add(q.get("text"))
-            
-    # Output logs/prints for each question before returning
-    final_questions = generated[:question_count]
-    for idx, q in enumerate(final_questions):
-        if idx < len(configs):
-            q["difficulty"] = configs[idx]["difficulty"]
-            
-        q_text = q.get("text", "")
-        is_valid = validate_question_context(q, company, role, round_clean)
+                    if len(generated) == question_count:
+                        _generation_cache[cache_key] = generated
+                        return generated
+            except Exception as e:
+                logger.warning(f"Batch generation failed (Retry {retry + 1}/3): {e}")
+                generated = []
+                
+    # Fallback if Gemini could not generate a valid batch
+    logger.error("Using fallback questions for batch generation.")
+    used_questions = set()
+    for diff in difficulties:
+        q = get_fallback_question_for_all_inputs(role, company, round_clean, diff, used_questions)
+        q["difficulty"] = diff
+        generated.append(q)
+        used_questions.add(q.get("text"))
         
-        # Requirement 12: Log details to stdout and application logs
-        print(f"Selected Company: {company}")
-        print(f"Selected Role: {role}")
-        print(f"Selected Round: {round_clean}")
-        print(f"Generated Question: {q_text}")
-        print(f"Validation Result: {is_valid}")
-        
-        logger.info(
-            f"Selected Company: {company} | Selected Role: {role} | Selected Round: {round_clean} | "
-            f"Generated Question: {q_text} | Validation Result: {is_valid}"
-        )
-        
-    return final_questions
+    return generated[:question_count]
 
 async def evaluate_gemini_answer(question_obj: dict, answer: str, interview: dict = None, source_code: str = None, language: str = None, transcript: str = None) -> dict:
     """Evaluate candidate answer using Gemini and return structured scores and suggestions."""
@@ -1238,25 +1214,35 @@ async def evaluate_gemini_answer(question_obj: dict, answer: str, interview: dic
         logger.error("Gemini evaluation failed, falling back: %s", e)
         return evaluate_answer_dynamically(question_obj, answer)
 
-async def generate_final_report(questions: list, answers: list, feedbacks: list, company: str) -> dict:
-    """Compile final synthesis verdict using Gemini or local rules."""
+async def generate_final_report(questions: list, answers: list, company: str, role: str) -> dict:
+    """Compile final synthesis verdict using Gemini evaluating all answers together."""
     try:
-        context = f"Analyze the following mock interview session for {company} and generate a final verdict report:\n"
+        context = f"Analyze the following mock interview session for {company} (Role: {role}) and generate a final evaluation report:\n"
         for i in range(len(questions)):
             q_text = questions[i].get("text", "") if isinstance(questions[i], dict) else questions[i]
-            context += f"Q: {q_text}\nA: {answers[i]}\n"
-            if i < len(feedbacks):
-                context += f"Overall Score: {feedbacks[i].get('overall_score')}\n\n"
+            
+            ans_data = answers[i]
+            ans_text = ans_data
+            if isinstance(ans_data, dict):
+                ans_text = ans_data.get("user_answer", "")
+                if ans_data.get("source_code"):
+                    ans_text += f"\nCode ({ans_data.get('selected_language')}):\n{ans_data.get('source_code')}"
+            
+            context += f"Q: {q_text}\nA: {ans_text}\n\n"
                 
         prompt = (
             f"{context}\n"
             f"Generate a raw JSON object with these exact keys:\n"
-            f"  - readiness_percentage (0-100 integer)\n"
+            f"  - readiness_percentage (0-100 integer, overall score)\n"
             f"  - strengths (array of 2-3 short strings)\n"
             f"  - weaknesses (array of 2-3 short strings)\n"
             f"  - improvement_areas (array of 2-3 short strings)\n"
             f"  - recommended_topics (array of 2-3 short strings)\n"
-            f"  - final_verdict (1 sentence encouraging feedback)\n"
+            f"  - company_fit_analysis (1-2 sentences on company fit)\n"
+            f"  - communication_feedback (1-2 sentences)\n"
+            f"  - coding_quality (string: N/A if not coding round, else feedback)\n"
+            f"  - time_complexity_analysis (string: N/A if not coding round, else feedback)\n"
+            f"  - space_complexity_analysis (string: N/A if not coding round, else feedback)\n"
             f"Do not include markdown wrappers."
         )
         
@@ -1364,96 +1350,30 @@ async def evaluate_answer(request: AnswerEvaluationRequest, current_user: dict =
         answers[request.question_index] = answer_data
         await interviews_col.update_one({"_id": ObjectId(request.interview_id)}, {"$set": {"answers": answers}})
         
-        question = interview["questions"][request.question_index]
-        
-        # Grading
-        feedback = await evaluate_gemini_answer(
-            question, 
-            request.user_answer, 
-            interview=interview,
-            source_code=request.source_code, 
-            language=request.selected_language, 
-            transcript=request.voice_transcript
-        )
-        
-        # Save feedback
-        feedback_doc = {
-            "interview_id": request.interview_id,
-            "question_index": request.question_index,
-            "technical_score": feedback.get("technical_score", 70),
-            "communication_score": feedback.get("communication_score", 70),
-            "confidence_score": feedback.get("confidence_score", 70),
-            "problem_solving_score": feedback.get("problem_solving_score", 70),
-            "overall_score": feedback.get("overall_score", 70),
-            "suggestions": feedback.get("suggestions", "No suggestions provided."),
-            "created_at": datetime.utcnow()
-        }
-        await feedback_col.insert_one(feedback_doc)
-        
+        # Grading - Deferred to end of interview
+        # Simply return success and progress
         response_data = {
             "interview_id": request.interview_id,
             "question_index": request.question_index,
-            "technical_score": feedback_doc["technical_score"],
-            "communication_score": feedback_doc["communication_score"],
-            "confidence_score": feedback_doc["confidence_score"],
-            "problem_solving_score": feedback_doc["problem_solving_score"],
-            "overall_score": feedback_doc["overall_score"],
-            "suggestions": feedback_doc["suggestions"],
-            "created_at": feedback_doc["created_at"].isoformat()
+            "message": "Answer saved successfully."
         }
-        
-        # Adaptive Difficulty Adjuster
-        score = feedback_doc["overall_score"]
-        current_diff = interview.get("current_difficulty", "easy")
-        
-        # Check if difficulty is locked by AI Settings
-        ai_settings_col = get_collection("ai_settings")
-        settings = await ai_settings_col.find_one({"user_id": current_user["id"]})
-        
-        fixed_difficulty = None
-        if settings and settings.get("preferred_recruiter_level"):
-            lvl = settings["preferred_recruiter_level"]
-            if lvl == "Entry":
-                fixed_difficulty = "easy"
-            elif lvl == "Medium (Associate)":
-                fixed_difficulty = "medium"
-            elif lvl in ["Senior", "Lead"]:
-                fixed_difficulty = "hard"
-                
-        if fixed_difficulty:
-            new_diff = fixed_difficulty
-        else:
-            if score > 85:
-                new_diff = "hard" if current_diff == "medium" else "medium" if current_diff == "easy" else "hard"
-            elif score < 60:
-                new_diff = "easy" if current_diff == "medium" else "medium" if current_diff == "hard" else "easy"
-            else:
-                new_diff = current_diff
-            
-        await interviews_col.update_one(
-            {"_id": ObjectId(request.interview_id)},
-            {"$set": {"current_difficulty": new_diff}}
-        )
-        response_data["current_difficulty"] = new_diff
         
         is_last = (request.question_index == len(answers) - 1)
         
         if is_last:
-            # Mark complete and compile final report
-            all_feedbacks_cursor = feedback_col.find({"interview_id": request.interview_id}).sort("question_index", 1)
-            all_feedbacks = []
-            async for doc in all_feedbacks_cursor:
-                all_feedbacks.append(doc)
-                
-            final_report = await generate_final_report(interview["questions"], answers, all_feedbacks, interview.get("company", "Google"))
+            final_report = await generate_final_report(
+                interview["questions"], 
+                answers, 
+                interview.get("company", "Generic"),
+                interview.get("role", "Candidate")
+            )
             
             await interviews_col.update_one(
                 {"_id": ObjectId(request.interview_id)},
                 {"$set": {
                     "status": "completed",
                     "final_score": final_report.get("readiness_percentage", 70),
-                    "final_report": final_report,
-                    "current_difficulty": None
+                    "final_report": final_report
                 }}
             )
             
@@ -1469,48 +1389,9 @@ async def evaluate_answer(request: AnswerEvaluationRequest, current_user: dict =
             response_data["final_report"] = final_report
             response_data["is_last"] = True
         else:
-            # Update the NEXT question dynamically to reflect Adaptive Difficulty & prevent duplicate
-            # Extract already asked questions
-            used = {q.get("text") for q in interview["questions"][:request.question_index+1]}
-            
-            # Fetch next dynamic question matching the updated difficulty
-            next_q = get_fallback_question_for_all_inputs(
-                interview["role"], 
-                interview["company"], 
-                interview["round_type"], 
-                new_diff, 
-                used
-            )
-            
-            # Replace next question in interview database list
-            db_questions = list(interview["questions"])
-            db_questions[request.question_index + 1] = next_q
-            
-            await interviews_col.update_one(
-                {"_id": ObjectId(request.interview_id)},
-                {"$set": {"questions": db_questions}}
-            )
-            
-            # Log the replaced next question details
-            is_valid = validate_question_context(next_q, interview["company"], interview["role"], interview["round_type"])
-            print(f"Selected Company: {interview['company']}")
-            print(f"Selected Role: {interview['role']}")
-            print(f"Selected Round: {interview['round_type']}")
-            print(f"Generated Question: {next_q.get('text', '')}")
-            print(f"Validation Result: {is_valid}")
-            
-            logger.info(
-                f"Selected Company: {interview['company']} | Selected Role: {interview['role']} | "
-                f"Selected Round: {interview['round_type']} | Generated Question: {next_q.get('text', '')} | "
-                f"Validation Result: {is_valid}"
-            )
-            
-            response_data["questions"] = db_questions
             response_data["is_last"] = False
             
         return response_data
-    except HTTPException:
-        raise
     except Exception as e:
         logger.exception("Unexpected error in evaluate answer route")
         raise HTTPException(status_code=500, detail=str(e))
