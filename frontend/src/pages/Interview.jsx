@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import Layout from '../components/Layout';
 import api from '../utils/api';
-import Editor from 'react-simple-code-editor';
+import ReactSimpleCodeEditor from 'react-simple-code-editor';
+const Editor = ReactSimpleCodeEditor.default || ReactSimpleCodeEditor;
 import Prism from 'prismjs';
 import 'prismjs/components/prism-clike';
 import 'prismjs/components/prism-javascript';

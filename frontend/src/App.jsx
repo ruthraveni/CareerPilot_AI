@@ -39,22 +39,30 @@ const LoadingFallback = () => (
   </div>
 );
 
+import ErrorBoundaryPage from './components/ErrorBoundaryPage';
+
 const router = createBrowserRouter([
-  { path: "/", element: <Landing /> },
-  { path: "/login", element: <Login /> },
-  { path: "/register", element: <Register /> },
-  { path: "/dashboard", element: <Suspense fallback={<LoadingFallback />}><Dashboard /></Suspense> },
-  { path: "/admin", element: <Suspense fallback={<LoadingFallback />}><Admin /></Suspense> },
-  { path: "/profile", element: <Suspense fallback={<LoadingFallback />}><Profile /></Suspense> },
-  { path: "/mentor", element: <Suspense fallback={<LoadingFallback />}><AIMentor /></Suspense> },
-  { path: "/history", element: <Suspense fallback={<LoadingFallback />}><History /></Suspense> },
-  { path: "/interview", element: <Suspense fallback={<LoadingFallback />}><Interview /></Suspense> },
-  { path: "/resume", element: <Suspense fallback={<LoadingFallback />}><ResumeAnalyzer /></Suspense> },
-  { path: "/company", element: <Suspense fallback={<LoadingFallback />}><CompanyList /></Suspense> },
-  { path: "/company/:id", element: <Suspense fallback={<LoadingFallback />}><CompanyDetail /></Suspense> },
-  { path: "/settings", element: <Suspense fallback={<LoadingFallback />}><Settings /></Suspense> },
-  { path: "/feature/:featureId", element: <Suspense fallback={<LoadingFallback />}><FeatureDetail /></Suspense> },
-  { path: "*", element: <Navigate to="/" replace /> }
+  {
+    path: "/",
+    errorElement: <ErrorBoundaryPage />,
+    children: [
+      { index: true, element: <Landing /> },
+      { path: "login", element: <Login /> },
+      { path: "register", element: <Register /> },
+      { path: "dashboard", element: <Suspense fallback={<LoadingFallback />}><Dashboard /></Suspense> },
+      { path: "admin", element: <Suspense fallback={<LoadingFallback />}><Admin /></Suspense> },
+      { path: "profile", element: <Suspense fallback={<LoadingFallback />}><Profile /></Suspense> },
+      { path: "mentor", element: <Suspense fallback={<LoadingFallback />}><AIMentor /></Suspense> },
+      { path: "history", element: <Suspense fallback={<LoadingFallback />}><History /></Suspense> },
+      { path: "interview", element: <Suspense fallback={<LoadingFallback />}><Interview /></Suspense> },
+      { path: "resume", element: <Suspense fallback={<LoadingFallback />}><ResumeAnalyzer /></Suspense> },
+      { path: "company", element: <Suspense fallback={<LoadingFallback />}><CompanyList /></Suspense> },
+      { path: "company/:id", element: <Suspense fallback={<LoadingFallback />}><CompanyDetail /></Suspense> },
+      { path: "settings", element: <Suspense fallback={<LoadingFallback />}><Settings /></Suspense> },
+      { path: "feature/:featureId", element: <Suspense fallback={<LoadingFallback />}><FeatureDetail /></Suspense> },
+      { path: "*", element: <Navigate to="/" replace /> }
+    ]
+  }
 ]);
 
 function App() {
