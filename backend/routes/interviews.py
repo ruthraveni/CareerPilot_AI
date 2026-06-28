@@ -45,6 +45,9 @@ class AnswerEvaluationRequest(BaseModel):
     interview_id: str
     question_index: int
     user_answer: str
+    selected_language: Optional[str] = None
+    source_code: Optional[str] = None
+    voice_transcript: Optional[str] = None
 
 # Built-in question database containing high-quality questions for all 11 companies and 6 rounds
 QUESTION_BANK = {
@@ -1157,31 +1160,58 @@ async def generate_gemini_questions(role: str, company: str, round_type: str, qu
         
     return final_questions
 
-async def evaluate_gemini_answer(question_obj: dict, answer: str) -> dict:
+async def evaluate_gemini_answer(question_obj: dict, answer: str, interview: dict = None, source_code: str = None, language: str = None, transcript: str = None) -> dict:
     """Evaluate candidate answer using Gemini and return structured scores and suggestions."""
     q_text = question_obj.get("text", "")
     q_type = question_obj.get("type", "descriptive")
+    
+    company = interview.get("company", "the company") if interview else "the company"
+    role = interview.get("role", "the role") if interview else "the role"
+    round_type = interview.get("round_type", "the round") if interview else "the round"
     
     # MCQ always evaluated locally for 100% deterministic accuracy
     if q_type == "mcq" or not GEMINI_API_KEY:
         return evaluate_answer_dynamically(question_obj, answer)
         
     try:
-        prompt = (
-            f"You are an expert interviewer at {company} evaluating a candidate's answer to the following question.\n\n"
-            f"Role: {role}\n"
-            f"Round: {round_type}\n"
-            f"Question: {q_text}\n"
-            f"Candidate's Answer: {answer}\n\n"
-            f"Perform a strict analysis and output a raw JSON object containing these exact keys:\n"
-            f"  - technical_score (0-100 integer)\n"
-            f"  - communication_score (0-100 integer)\n"
-            f"  - confidence_score (0-100 integer, based on directness and assertiveness)\n"
-            f"  - problem_solving_score (0-100 integer)\n"
-            f"  - overall_score (0-100 integer)\n"
-            f"  - suggestions (detailed summary of improvements, concepts missed, and strengths)\n"
-            f"Do not include markdown wrappers or backticks."
-        )
+        if source_code:
+            prompt = (
+                f"You are an expert technical interviewer at {company} evaluating a candidate's coding performance.\n\n"
+                f"Role: {role}\n"
+                f"Round: {round_type}\n"
+                f"Question: {q_text}\n"
+                f"Candidate's Selected Language: {language}\n"
+                f"Candidate's Source Code:\n```{language}\n{source_code}\n```\n"
+                f"Candidate's Verbal Explanation (Voice Transcript): {transcript if transcript else 'None'}\n"
+                f"Candidate's Final Answer Text: {answer}\n\n"
+                f"Evaluate their code for correctness, logic, syntax, time complexity, space complexity, and edge cases. Evaluate their communication skills based on the voice transcript.\n"
+                f"Perform a strict analysis and output a raw JSON object containing these exact keys:\n"
+                f"  - technical_score (0-100 integer)\n"
+                f"  - communication_score (0-100 integer)\n"
+                f"  - confidence_score (0-100 integer, based on directness and assertiveness)\n"
+                f"  - problem_solving_score (0-100 integer)\n"
+                f"  - overall_score (0-100 integer)\n"
+                f"  - suggestions (detailed summary of improvements, concepts missed, time/space complexity, and strengths)\n"
+                f"Do not include markdown wrappers or backticks."
+            )
+        else:
+            prompt = (
+                f"You are an expert interviewer at {company} evaluating a candidate's answer to the following question.\n\n"
+                f"Role: {role}\n"
+                f"Round: {round_type}\n"
+                f"Question: {q_text}\n"
+                f"Candidate's Answer: {answer}\n\n"
+                f"Perform a strict analysis and output a raw JSON object containing these exact keys:\n"
+                f"  - technical_score (0-100 integer)\n"
+                f"  - communication_score (0-100 integer)\n"
+                f"  - confidence_score (0-100 integer, based on directness and assertiveness)\n"
+                f"  - problem_solving_score (0-100 integer)\n"
+                f"  - overall_score (0-100 integer)\n"
+                f"  - suggestions (detailed summary of improvements, concepts missed, and strengths)\n"
+                f"Do not include markdown wrappers or backticks."
+            )
+            
+        model = genai.GenerativeModel('gemini-1.5-flash')
         response = model.generate_content(prompt)
         text = response.text.strip()
         
@@ -1308,14 +1338,30 @@ async def evaluate_answer(request: AnswerEvaluationRequest, current_user: dict =
         if not (0 <= request.question_index < len(answers)):
             raise HTTPException(status_code=400, detail="Invalid question index")
             
-        # Update answer
-        answers[request.question_index] = request.user_answer
+        # Update answer - support both string and object
+        answer_data = request.user_answer
+        if request.selected_language or request.source_code or request.voice_transcript:
+            answer_data = {
+                "user_answer": request.user_answer,
+                "selected_language": request.selected_language,
+                "source_code": request.source_code,
+                "voice_transcript": request.voice_transcript
+            }
+            
+        answers[request.question_index] = answer_data
         await interviews_col.update_one({"_id": ObjectId(request.interview_id)}, {"$set": {"answers": answers}})
         
         question = interview["questions"][request.question_index]
         
         # Grading
-        feedback = await evaluate_gemini_answer(question, request.user_answer)
+        feedback = await evaluate_gemini_answer(
+            question, 
+            request.user_answer, 
+            interview=interview,
+            source_code=request.source_code, 
+            language=request.selected_language, 
+            transcript=request.voice_transcript
+        )
         
         # Save feedback
         feedback_doc = {

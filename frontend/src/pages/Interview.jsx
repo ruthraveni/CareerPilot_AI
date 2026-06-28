@@ -1,6 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
 import Layout from '../components/Layout';
 import api from '../utils/api';
+import Editor from 'react-simple-code-editor';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-clike';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-c';
+import 'prismjs/components/prism-cpp';
+import 'prismjs/components/prism-java';
+import 'prismjs/components/prism-python';
+import 'prismjs/themes/prism-tomorrow.css';
 import { 
   Video, ChevronRight, Play, Loader2, Award, ArrowLeft, Mic, Square, 
   Clock, Target, AlertTriangle, Building, Briefcase, ChevronDown, ChevronUp, Check, X, 
@@ -40,6 +49,34 @@ function Interview() {
   const [submittedAnswers, setSubmittedAnswers] = useState([]);
   const [feedbacksList, setFeedbacksList] = useState([]);
   const [showReview, setShowReview] = useState(false);
+
+  // Coding Round Specific State
+  const [selectedLanguage, setSelectedLanguage] = useState('cpp');
+  const [sourceCode, setSourceCode] = useState('');
+  
+  const speechRecognitionRef = useRef(null);
+
+  // Auto-save source code
+  useEffect(() => {
+    if (sourceCode) {
+      localStorage.setItem(`interview_code_${interviewId || 'draft'}`, sourceCode);
+    }
+  }, [sourceCode, interviewId]);
+
+  useEffect(() => {
+    const savedCode = localStorage.getItem(`interview_code_${interviewId || 'draft'}`);
+    if (savedCode) setSourceCode(savedCode);
+  }, [interviewId]);
+
+  const handleLanguageChange = (e) => {
+    const newLang = e.target.value;
+    if (sourceCode.trim() !== '') {
+      if (!window.confirm("Changing the language might reset syntax highlighting for your current code. Are you sure?")) {
+        return;
+      }
+    }
+    setSelectedLanguage(newLang);
+  };
 
   const mapRoundType = (round) => {
     const mapping = {
@@ -113,11 +150,20 @@ function Interview() {
     
     try {
       setSubmitting(true);
-      const response = await api.post('/interview/evaluate', {
+      
+      const payload = {
         interview_id: interviewId,
         question_index: currentIdx,
         user_answer: answerToSubmit
-      });
+      };
+      
+      if (mapRoundType(roundType) === 'Coding') {
+        payload.selected_language = selectedLanguage;
+        payload.source_code = sourceCode;
+        payload.voice_transcript = userAnswer;
+      }
+
+      const response = await api.post('/interview/evaluate', payload);
       
       // Save stats
       setSubmittedAnswers(prev => [...prev, answerToSubmit]);
