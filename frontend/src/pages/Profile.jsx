@@ -109,6 +109,9 @@ function Profile() {
   // Completed mock interviews
   const [completedInterviews, setCompletedInterviews] = useState([]);
   
+  // Resume analysis state
+  const [resumeAnalysis, setResumeAnalysis] = useState(null);
+  
   // Image states
   const [imageError, setImageError] = useState(false);
   const [showImageMenu, setShowImageMenu] = useState(false);
@@ -124,6 +127,12 @@ function Profile() {
       }
       const interviewsRes = await api.get('/interview/interviews');
       setCompletedInterviews(interviewsRes.data || []);
+      
+      const resumeRes = await api.get('/resume/history');
+      if (resumeRes.data) {
+        setResumeAnalysis(resumeRes.data);
+      }
+      
       setError(null);
       setImageError(false);
     } catch (err) {
@@ -333,15 +342,11 @@ function Profile() {
   // Dynamic calculations for progress metrics
   const dynamicMetrics = useMemo(() => {
     // 1. Resume ATS Score
-    const savedResume = localStorage.getItem('resume_analysis');
     let atsScore = null;
     let missingKeywords = [];
-    if (savedResume) {
-      try {
-        const resumeData = JSON.parse(savedResume);
-        atsScore = resumeData.ats_score || null;
-        missingKeywords = resumeData.missing_keywords || [];
-      } catch (e) {}
+    if (resumeAnalysis) {
+      atsScore = resumeAnalysis.ats_score || null;
+      missingKeywords = resumeAnalysis.missing_keywords || [];
     }
 
     // 2. Mock Interviews Completed
@@ -387,7 +392,7 @@ function Profile() {
       missingSkills: missingKeywords.slice(0, 5),
       recommendedCompanies
     };
-  }, [completedInterviews]);
+  }, [completedInterviews, resumeAnalysis]);
 
   const getReadinessLevel = (score) => {
     if (score === null || score === undefined) return 'Beginner';

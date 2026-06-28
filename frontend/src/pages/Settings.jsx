@@ -30,8 +30,8 @@ export default function Settings() {
   const [activeSection, setActiveSection] = useState('Account'); // 'Account', 'Appearance', 'Notifications', 'Privacy', 'AI', 'System'
 
   // Form states
-  const [fullName, setFullName] = useState('Ruthra');
-  const [email, setEmail] = useState('candidate@careerpilot.ai');
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
 
   // Appearance Context & Preview States
@@ -179,16 +179,13 @@ export default function Settings() {
   // Download User Data
   const handleDownloadData = async () => {
     try {
-      const [profileRes, interviewsRes] = await Promise.all([
+      const [profileRes, interviewsRes, resumeRes] = await Promise.all([
         api.get('/profile'),
-        api.get('/interview/interviews')
+        api.get('/interview/interviews'),
+        api.get('/resume/history')
       ]);
 
-      const resumeAnalysis = localStorage.getItem('resume_analysis');
-      let parsedResume = null;
-      if (resumeAnalysis) {
-        try { parsedResume = JSON.parse(resumeAnalysis); } catch (e) {}
-      }
+      const parsedResume = resumeRes.data || null;
 
       // Collect project milestones
       const projectCompletion = {};
