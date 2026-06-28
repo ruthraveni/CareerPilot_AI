@@ -1,18 +1,23 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from utils.auth_deps import get_current_user
 from config.database import get_collection
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 from typing import List, Optional
 from datetime import datetime
 from bson import ObjectId
 import logging
-from dotenv import load_dotenv
 import json
 import re
 from pathlib import Path
+from utils.ai_client import ai_client
 import google.generativeai as genai
 import os
 import random
+import uuid
+import io
+import wave
+import traceback
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -1099,9 +1104,13 @@ async def generate_gemini_questions(role: str, company: str, round_type: str, qu
                         f"Return the output as a raw JSON object. Do not include markdown formatting or json block wrappers."
                     )
                     
-                    model_instance = genai.GenerativeModel('gemini-2.5-flash')
-                    response = model_instance.generate_content(prompt)
-                    text = response.text.strip()
+                    text = await ai_client.generate_content(
+                        prompt=prompt,
+                        user_id="system",
+                        endpoint="/interview/generate_questions",
+                        model_name="gemini-2.5-flash"
+                    )
+                    text = text.strip()
                     
                     if text.startswith("```"):
                         text = re.sub(r"^```[a-z]*\n?", "", text)
@@ -1170,7 +1179,7 @@ async def evaluate_gemini_answer(question_obj: dict, answer: str, interview: dic
     round_type = interview.get("round_type", "the round") if interview else "the round"
     
     # MCQ always evaluated locally for 100% deterministic accuracy
-    if q_type == "mcq" or not GEMINI_API_KEY:
+    if q_type == "mcq":
         return evaluate_answer_dynamically(question_obj, answer)
         
     try:
@@ -1211,9 +1220,13 @@ async def evaluate_gemini_answer(question_obj: dict, answer: str, interview: dic
                 f"Do not include markdown wrappers or backticks."
             )
             
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        response = model.generate_content(prompt)
-        text = response.text.strip()
+        text = await ai_client.generate_content(
+            prompt=prompt,
+            user_id="system",
+            endpoint="/interview/evaluate_answer",
+            model_name="gemini-1.5-flash"
+        )
+        text = text.strip()
         
         if text.startswith("```"):
             text = text.split("```")[1]
@@ -1227,12 +1240,7 @@ async def evaluate_gemini_answer(question_obj: dict, answer: str, interview: dic
 
 async def generate_final_report(questions: list, answers: list, feedbacks: list, company: str) -> dict:
     """Compile final synthesis verdict using Gemini or local rules."""
-    if not GEMINI_API_KEY:
-        return generate_final_report_dynamically(questions, answers, feedbacks, company)
-        
     try:
-        model = genai.GenerativeModel("gemini-2.5-flash")
-        
         context = f"Analyze the following mock interview session for {company} and generate a final verdict report:\n"
         for i in range(len(questions)):
             q_text = questions[i].get("text", "") if isinstance(questions[i], dict) else questions[i]
@@ -1248,12 +1256,17 @@ async def generate_final_report(questions: list, answers: list, feedbacks: list,
             f"  - weaknesses (array of 2-3 short strings)\n"
             f"  - improvement_areas (array of 2-3 short strings)\n"
             f"  - recommended_topics (array of 2-3 short strings)\n"
-            f"  - company_fit_analysis (a paragraph analyzing fit for {company} based on metrics)\n"
-            f"  - recommended_next_companies (array of 3 company names to apply/practice next)\n"
-            f"Do not include markdown wrappers or backticks."
+            f"  - final_verdict (1 sentence encouraging feedback)\n"
+            f"Do not include markdown wrappers."
         )
-        response = model.generate_content(prompt)
-        text = response.text.strip()
+        
+        text = await ai_client.generate_content(
+            prompt=prompt,
+            user_id="system",
+            endpoint="/interview/generate_report",
+            model_name="gemini-2.5-flash"
+        )
+        text = text.strip()
         
         if text.startswith("```"):
             text = text.split("```")[1]

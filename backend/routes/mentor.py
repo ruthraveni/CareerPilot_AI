@@ -4,6 +4,7 @@ from config.database import get_collection
 from pydantic import BaseModel
 from datetime import datetime
 from bson import ObjectId
+from utils.ai_client import ai_client, health_state
 
 import os
 import json
@@ -44,13 +45,7 @@ async def get_mentor_history(current_user: dict = Depends(get_current_user)):
     user = await users_col.find_one({"_id": ObjectId(current_user["id"])})
     return user.get("mentor_chats", [])
 
-async def generate_gemini_response(message: str, history: list) -> str:
-    import google.generativeai as genai
-    if GEMINI_API_KEY:
-        genai.configure(api_key=GEMINI_API_KEY)
-    else:
-        return "I am currently running in offline mode. Please configure GEMINI_API_KEY to enable my AI capabilities."
-        
+async def generate_gemini_response(message: str, history: list, user_id: str) -> str:
     # Build prompt with history
     context = """You are an expert AI Career Mentor, Software Engineer, Coding Mentor, Placement Trainer, and Interview Coach. Answer every user query directly, accurately, and in detail. Provide practical, actionable guidance and complete coding solutions when requested.
 Do NOT reply with generic introductory or conversational filler like "I'm here to help you navigate your career", "Could you provide more context?", or "What specific area would you like to focus on today?" unless the user's question is genuinely unclear.
@@ -70,41 +65,11 @@ Conversation History:
         
     context += f"User: {message}\nMentor:"
     
-    import logging
-    import traceback
-    model_instance = genai.GenerativeModel('gemini-2.5-flash')
-    
-    max_retries = 3
-    for attempt in range(max_retries):
-        try:
-            logging.info(f"Gemini API Request Attempt {attempt+1}...")
-            response = await model_instance.generate_content_async(context, generation_config={"temperature": 0.2})
-            
-            try:
-                text = response.text
-                if text:
-                    return text.strip()
-            except ValueError as ve:
-                logging.error(f"Gemini API Safety/Blocked Error: {ve}")
-                return "I'm sorry, I cannot provide a response to that due to safety filters."
-                
-            logging.warning(f"Gemini API returned empty text property on attempt {attempt+1}")
-        except Exception as e:
-            error_msg = str(e)
-            logging.error(f"Gemini API Exception caught (Attempt {attempt+1}): {error_msg}")
-            
-            if "429" in error_msg or "quota" in error_msg.lower():
-                return "AI limit reached. Please try again later."
-                
-            if attempt < max_retries - 1:
-                delay = 2 ** attempt
-                logging.info(f"Retrying in {delay} seconds...")
-                await asyncio.sleep(delay)
-            else:
-                logging.error(f"Gemini API failed after {max_retries} retries: {error_msg}")
-                return "I'm currently experiencing technical difficulties processing your request. Please try again later."
-                
-    return "I'm currently experiencing technical difficulties processing your request. Please try again later."
+    return await ai_client.generate_content(
+        prompt=context,
+        user_id=user_id,
+        endpoint="/mentor/chat"
+    )
 
 def fallback_intent_engine(message: str) -> str:
     msg_lower = message.lower()
@@ -255,12 +220,6 @@ async def chat_with_mentor(request: ChatRequest, current_user: dict = Depends(ge
     user = await users_col.find_one({"_id": ObjectId(current_user["id"])})
     history = user.get("mentor_chats", [])
     
-    user_msg_obj = {
-        "sender": "user",
-        "text": request.message,
-        "timestamp": datetime.utcnow()
-    }
-    
     user_id = str(current_user["id"])
     msg_lower = request.message.lower().strip()
     
@@ -287,22 +246,14 @@ async def chat_with_mentor(request: ChatRequest, current_user: dict = Depends(ge
                 "timestamp": datetime.utcnow()
             }
             
-    # 1. Save user message to database
-    await users_col.update_one(
-        {"_id": ObjectId(current_user["id"])},
-        {"$push": {"mentor_chats": user_msg_obj}}
-    )
+    # 1. Generate Response first before saving history
+    reply = await generate_gemini_response(request.message, history, user_id)
     
-    # 2. Generate Response
-    try:
-        if GEMINI_API_KEY:
-            reply = await generate_gemini_response(request.message, history)
-        else:
-            reply = fallback_intent_engine(request.message)
-    except Exception as e:
-        import logging
-        logging.error(f"Mentor Chat Error: {e}")
-        reply = "I'm currently experiencing technical difficulties processing your request. Please try again later."
+    user_msg_obj = {
+        "sender": "user",
+        "text": request.message,
+        "timestamp": datetime.utcnow()
+    }
     
     ai_msg_obj = {
         "sender": "ai",
@@ -310,39 +261,27 @@ async def chat_with_mentor(request: ChatRequest, current_user: dict = Depends(ge
         "timestamp": datetime.utcnow()
     }
     
-    # 3. Save AI response to database
+    # 2. Save both user message and AI response to database atomically on success
     await users_col.update_one(
         {"_id": ObjectId(current_user["id"])},
-        {"$push": {"mentor_chats": ai_msg_obj}}
+        {"$push": {"mentor_chats": {"$each": [user_msg_obj, ai_msg_obj]}}}
     )
     
-    # 4. Update Cache if successful
-    if not reply.startswith("I'm currently experiencing technical difficulties") and not reply.startswith("I am currently running in offline mode"):
-        _response_cache[cache_key] = (reply, time.time())
+    # 3. Update Cache
+    _response_cache[cache_key] = (reply, time.time())
         
     return ai_msg_obj
 
-@router.get("/test-gemini")
-async def test_gemini_endpoint():
-    try:
-        import google.generativeai as genai
-        import traceback
-        if GEMINI_API_KEY:
-            genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel('gemini-2.5-flash')
-        response = model.generate_content("Create a detailed 14-day study plan for TCS NQT")
-        return {
-            "status": "success",
-            "text": getattr(response, 'text', 'No text generated'),
-            "raw_response": str(response)
-        }
-    except Exception as e:
-        import traceback
-        return {
-            "status": "error",
-            "error_message": str(e),
-            "traceback": traceback.format_exc()
-        }
+@router.get("/health/ai")
+async def get_ai_health():
+    return {
+        "total_requests": health_state.total_requests,
+        "successful_requests": health_state.successful_requests,
+        "failed_requests": health_state.failed_requests,
+        "consecutive_failures": health_state.consecutive_failures,
+        "circuit_open": health_state.circuit_open,
+        "success_rate": f"{(health_state.successful_requests / max(1, health_state.total_requests) * 100):.2f}%"
+    }
 
 class CompanyChatRequest(BaseModel):
     message: str
@@ -376,7 +315,6 @@ async def company_chat_endpoint(request: CompanyChatRequest, current_user: dict 
             return await _pending_company_queries[cache_key]
         except Exception as e:
             logging.error(f"Deduplication existing query failed: {e}")
-            # If the ongoing one fails, we fall through and try again, or fallback
             pass
 
     fut = loop.create_future()
@@ -393,14 +331,7 @@ async def company_chat_endpoint(request: CompanyChatRequest, current_user: dict 
             fut.set_result(response_data)
             return response_data
             
-        # 3. Call Gemini
-        import google.generativeai as genai
-        if not GEMINI_API_KEY:
-            raise Exception("GEMINI_API_KEY not configured")
-            
-        genai.configure(api_key=GEMINI_API_KEY)
-        model_instance = genai.GenerativeModel('gemini-2.5-flash')
-        
+        # 3. Call AI Client
         prompt = f"""You are a placement preparation mentor helping a student prepare for an interview.
 Here is some information about the company:
 {request.company_context}
@@ -412,13 +343,13 @@ Student's question: "{request.message}"
 
 Provide a concise, helpful, and professional response in 2-3 sentences. Focus on placement tips, technical preparation, or roadmap guidance. Do not use markdown titles."""
         
-        logging.info(f"Calling Gemini API for company {request.company_id}...")
+        logging.info(f"Calling AI Client for company {request.company_id}...")
         try:
-            response = await model_instance.generate_content_async(prompt, generation_config={"temperature": 0.2})
-            if not response.text:
-                raise Exception("Empty response from Gemini")
-                
-            bot_response = response.text.strip()
+            bot_response = await ai_client.generate_content(
+                prompt=prompt,
+                user_id=user_id,
+                endpoint="/mentor/company/chat"
+            )
             
             # Save to global cache
             await cache_col.insert_one({

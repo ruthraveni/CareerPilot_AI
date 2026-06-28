@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from utils.auth_deps import get_current_user
 from config.database import get_collection
+from utils.ai_client import ai_client
 import logging
 import os
 import io
@@ -416,16 +417,14 @@ Resume Text:
 
 async def analyze_with_gemini(resume_text: str, target_role: str) -> dict:
     try:
-        import google.generativeai as genai
-        if GEMINI_API_KEY:
-            genai.configure(api_key=GEMINI_API_KEY)
-        else:
-            raise Exception("Gemini API key is missing")
-
         prompt = ANALYSIS_PROMPT_TEMPLATE.format(resume_text=resume_text[:8000], target_role=target_role)
-        model_instance = genai.GenerativeModel('gemini-2.5-flash')
-        response = model_instance.generate_content(prompt)
-        text = response.text.strip()
+        text = await ai_client.generate_content(
+            prompt=prompt,
+            user_id="system",
+            endpoint="/resume/analyze",
+            model_name="gemini-2.5-flash"
+        )
+        text = text.strip()
         if text.startswith("```"):
             text = re.sub(r"^```[a-z]*\n?", "", text)
             text = re.sub(r"\n?```$", "", text)

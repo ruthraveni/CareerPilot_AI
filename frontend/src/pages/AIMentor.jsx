@@ -90,11 +90,19 @@ function AIMentor() {
         timestamp: response.data.timestamp
       }]);
     } catch (err) {
-      setMessages(prev => [...prev, {
-        sender: 'ai',
-        text: "Error connecting to AI mentor. Please check backend connection.",
-        timestamp: new Date()
-      }]);
+      const errorMsg = err.response?.data?.detail || err.response?.data?.error || "Error connecting to AI mentor. Please check backend connection.";
+      setMessages(prev => {
+        // Remove the user's message from the UI since it failed and wasn't saved in the backend
+        const newMessages = [...prev];
+        if (newMessages.length > 0 && newMessages[newMessages.length - 1].sender === 'user') {
+          newMessages.pop();
+        }
+        return [...newMessages, {
+          sender: 'ai',
+          text: `⚠️ ${errorMsg}\n\n*Your prompt was: "${textToSend}"*`,
+          timestamp: new Date()
+        }];
+      });
     } finally {
       setIsTyping(false);
     }
@@ -223,15 +231,17 @@ function AIMentor() {
         <div className="p-4 bg-[var(--cp-surface)] border-t border-[var(--cp-border)] flex items-center space-x-3">
           <input
             type="text"
-            className="flex-1 px-4 py-3 border border-[var(--cp-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="flex-1 px-4 py-3 border border-[var(--cp-border)] rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
             placeholder="Ask your mentor about plans, roadmap suggestions, resume improvement..."
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSendMessage(inputText)}
+            onKeyDown={(e) => e.key === 'Enter' && !isTyping && handleSendMessage(inputText)}
+            disabled={isTyping}
           />
           <button
             onClick={() => handleSendMessage(inputText)}
-            className="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-xl shadow-md transition-colors flex-shrink-0"
+            disabled={isTyping || !inputText.trim()}
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white p-3 rounded-xl shadow-md transition-colors flex-shrink-0"
           >
             <Send className="h-4 w-4" />
           </button>

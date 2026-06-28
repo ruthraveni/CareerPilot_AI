@@ -149,7 +149,8 @@ function Interview() {
       setTimeLeft(Number(timerLimit));
       setTimerActive(true);
     } catch (err) {
-      toast.error('Failed to start interview session.');
+      const message = err?.response?.data?.detail || 'Failed to start interview session.';
+      toast.error(message);
     } finally {
       setLoading(false);
     }
