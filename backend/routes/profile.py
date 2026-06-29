@@ -34,6 +34,7 @@ class ProfileUpdateRequest(BaseModel):
     hackathonsAttended: Optional[int] = None
     avatarUrl: Optional[str] = None
     profile_image: Optional[str] = None
+    projects: Optional[List[str]] = None
 
 @router.get("")
 async def get_profile(current_user: dict = Depends(get_current_user)):
@@ -63,7 +64,8 @@ async def get_profile(current_user: dict = Depends(get_current_user)):
         "certifications": user.get("certifications") if user.get("certifications") is not None else [],
         "leetcodeSolved": user.get("leetcodeSolved") if user.get("leetcodeSolved") is not None else 0,
         "hackathonsAttended": user.get("hackathonsAttended") if user.get("hackathonsAttended") is not None else 0,
-        "avatarUrl": user.get("avatarUrl") or (f"http://localhost:8000/{user.get('profile_image')}" if user.get("profile_image") else None)
+        "avatarUrl": user.get("avatarUrl") or (f"http://localhost:8000/{user.get('profile_image')}" if user.get("profile_image") else None),
+        "projects": user.get("projects") if user.get("projects") is not None else []
     }
 
 @router.put("")
@@ -101,7 +103,7 @@ async def update_profile(request: ProfileUpdateRequest, current_user: dict = Dep
         "targetRole", "dreamCompany", "preferredDomain",
         "languages", "frameworks", "databases", "tools", "softSkills",
         "certifications", "leetcodeSolved", "hackathonsAttended",
-        "avatarUrl", "profile_image"
+        "avatarUrl", "profile_image", "projects"
     ]:
         if field in data and data[field] is not None:
             update_data[field] = data[field]

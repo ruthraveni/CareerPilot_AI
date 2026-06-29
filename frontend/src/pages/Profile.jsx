@@ -1000,7 +1000,7 @@ function Profile() {
                 <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', background: 'var(--cp-surface2)', padding: '10px 14px', borderRadius: '10px' }}>
                   <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Hands-on Projects Completed</span>
                   <strong style={{ color: 'var(--cp-primary)', fontSize: '1rem' }}>
-                    {dynamicMetrics.projectsCompletedCount} Projects
+                    {dynamicMetrics.projectsCompletedCount + (profile?.projects || []).length} Projects
                   </strong>
                 </div>
 
@@ -1116,6 +1116,92 @@ function Profile() {
                           📜 {c}
                         </div>
                       ))}
+                      {(profile.certifications || []).length === 0 && (
+                        <span style={{ fontSize: '0.8rem', color: 'var(--cp-text-muted)' }}>No certifications added.</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Custom Projects list */}
+                <div style={{ borderTop: '1px solid var(--cp-border)', paddingTop: '14px', marginTop: '14px' }}>
+                  <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--cp-text-muted)', display: 'block', marginBottom: '8px', textTransform: 'uppercase' }}>
+                    Personal / Academic Projects
+                  </span>
+                  
+                  {isEditing ? (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {(formData.projects || []).map((p, i) => (
+                        <div key={i} style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <input 
+                            type="text" 
+                            className="cpd-chat-input" 
+                            style={{ flex: 1, padding: '4px 8px', fontSize: '0.8rem', background: 'white' }}
+                            value={p}
+                            onChange={(e) => {
+                              const updated = [...(formData.projects || [])];
+                              updated[i] = e.target.value;
+                              handleInputChange('projects', updated);
+                            }}
+                            disabled={saveLoading}
+                          />
+                          <button 
+                            onClick={() => {
+                              const updated = (formData.projects || []).filter((_, idx) => idx !== i);
+                              handleInputChange('projects', updated);
+                            }}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                            disabled={saveLoading}
+                          >
+                            <Trash2 size={14} color="var(--cp-badge-hard)" />
+                          </button>
+                        </div>
+                      ))}
+                      <button 
+                        onClick={() => {
+                          const updated = [...(formData.projects || []), 'New Project'];
+                          handleInputChange('projects', updated);
+                        }}
+                        disabled={saveLoading}
+                        style={{
+                          background: 'none',
+                          border: '1px dashed var(--cp-primary)',
+                          color: 'var(--cp-primary)',
+                          padding: '6px',
+                          borderRadius: '8px',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '4px'
+                        }}
+                      >
+                        <Plus size={14} /> Add Project
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      {(profile.projects || []).map((p, i) => (
+                        <div 
+                          key={i} 
+                          style={{ 
+                            fontSize: '0.82rem', 
+                            color: 'var(--cp-text)', 
+                            background: 'var(--cp-surface2)', 
+                            padding: '8px 12px', 
+                            borderRadius: '8px', 
+                            border: '1px solid var(--cp-border)',
+                            fontWeight: 500
+                          }}
+                        >
+                          💻 {p}
+                        </div>
+                      ))}
+                      {(profile.projects || []).length === 0 && (
+                        <span style={{ fontSize: '0.8rem', color: 'var(--cp-text-muted)' }}>No projects added.</span>
+                      )}
                     </div>
                   )}
                 </div>
