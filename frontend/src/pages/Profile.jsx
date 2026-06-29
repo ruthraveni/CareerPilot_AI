@@ -115,6 +115,7 @@ function Profile() {
   // Image states
   const [imageError, setImageError] = useState(false);
   const [showImageMenu, setShowImageMenu] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
   
   // Toast notifications
   const [toast, setToast] = useState('');
@@ -266,6 +267,10 @@ function Profile() {
       return;
     }
 
+    // Show local preview immediately
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewImage(objectUrl);
+
     const uploadData = new FormData();
     uploadData.append('file', file);
 
@@ -279,9 +284,12 @@ function Profile() {
       
       await fetchProfile(); // Refetch global profile
       setImageError(false);
+      // Wait for fetchProfile to finish, then we could clear preview. But let's just leave it or clear it.
+      setPreviewImage(null);
       toast.success('Profile image uploaded successfully!');
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to upload profile image.');
+      setPreviewImage(null); // revert preview on error
     } finally {
       setSaveLoading(false);
       e.target.value = ''; // Reset input
@@ -456,7 +464,13 @@ function Profile() {
                 className="relative h-24 w-24 rounded-2xl border-4 border-white bg-slate-100 shadow-md overflow-hidden cursor-pointer flex items-center justify-center transition-all duration-200 hover:scale-105"
                 onClick={() => !saveLoading && setShowImageMenu(!showImageMenu)}
               >
-                {profile.avatarUrl && !imageError ? (
+                {previewImage ? (
+                  <img
+                    className="h-full w-full object-cover opacity-70"
+                    src={previewImage}
+                    alt="Uploading preview"
+                  />
+                ) : profile.avatarUrl && !imageError ? (
                   <img
                     className="h-full w-full object-cover"
                     src={profile.avatarUrl}

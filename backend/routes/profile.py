@@ -61,7 +61,7 @@ async def get_profile(current_user: dict = Depends(get_current_user)):
         "certifications": user.get("certifications") if user.get("certifications") is not None else [],
         "leetcodeSolved": user.get("leetcodeSolved") if user.get("leetcodeSolved") is not None else 0,
         "hackathonsAttended": user.get("hackathonsAttended") if user.get("hackathonsAttended") is not None else 0,
-        "avatarUrl": f"http://localhost:8000/{user.get('profile_image')}" if user.get("profile_image") else None
+        "avatarUrl": user.get("avatarUrl") or (f"http://localhost:8000/{user.get('profile_image')}" if user.get("profile_image") else None)
     }
 
 @router.put("")
@@ -112,6 +112,9 @@ async def update_profile(request: ProfileUpdateRequest, current_user: dict = Dep
     )
     return {"message": "Profile updated successfully"}
 
+import cloudinary
+import cloudinary.uploader
+
 @router.post("/upload-image")
 async def upload_image(file: UploadFile = File(...), current_user: dict = Depends(get_current_user)):
     users_collection = get_collection("users")
@@ -131,52 +134,83 @@ async def upload_image(file: UploadFile = File(...), current_user: dict = Depend
     if size > 5 * 1024 * 1024:
         raise HTTPException(status_code=400, detail="Image size exceeds 5 MB limit")
         
-    # Remove old image file if exists
-    old_image = user.get("profile_image")
-    if old_image and os.path.exists(old_image):
-        try:
-            os.remove(old_image)
-        except Exception:
-            pass
-            
-    # Save the new file to static/avatars/
-    unique_filename = f"{current_user['id']}_{int(time.time())}.{ext}"
-    file_path = f"static/avatars/{unique_filename}"
+    # Configure Cloudinary
+    cloudinary.config(
+        cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME", ""),
+        api_key=os.getenv("CLOUDINARY_API_KEY", ""),
+        api_secret=os.getenv("CLOUDINARY_API_SECRET", "")
+    )
     
-    os.makedirs("static/avatars", exist_ok=True)
-    with open(file_path, "wb") as f:
-        f.write(contents)
+    # Upload to Cloudinary
+    try:
+        # Check if they have Cloudinary credentials
+        if not os.getenv("CLOUDINARY_CLOUD_NAME"):
+            raise Exception("Cloudinary credentials are not configured on the server.")
+            
+        result = cloudinary.uploader.upload(
+            contents,
+            folder="careerpilot/avatars",
+            public_id=f"user_{current_user['id']}_{int(time.time())}",
+            overwrite=True,
+            resource_type="image"
+        )
+        secure_url = result.get("secure_url")
+    except Exception as e:
+        logger.error(f"Cloudinary upload failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to upload image to cloud storage.")
         
+    # Delete old image from Cloudinary if it exists
+    old_image = user.get("avatarUrl")
+    if old_image and "res.cloudinary.com" in old_image:
+        try:
+            # Extract public_id from url
+            # Format: https://res.cloudinary.com/<cloud_name>/image/upload/v1234567890/careerpilot/avatars/user_123.jpg
+            parts = old_image.split("/")
+            if "careerpilot" in parts:
+                idx = parts.index("careerpilot")
+                public_id = "/".join(parts[idx:]).split(".")[0]
+                cloudinary.uploader.destroy(public_id)
+        except Exception as e:
+            logger.warning(f"Failed to delete old Cloudinary image: {e}")
+            
     # Update path in DB
     await users_collection.update_one(
         {"_id": ObjectId(current_user["id"])},
-        {"$set": {"profile_image": file_path}}
+        {"$set": {"avatarUrl": secure_url}}
     )
     
     return {
         "message": "Profile image uploaded successfully",
-        "avatarUrl": f"http://localhost:8000/{file_path}"
+        "avatarUrl": secure_url
     }
 
 @router.delete("/image")
 async def delete_image(current_user: dict = Depends(get_current_user)):
     users_collection = get_collection("users")
     user = await users_collection.find_one({"_id": ObjectId(current_user["id"])})
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-        
-    # Delete image file from disk
-    old_image = user.get("profile_image")
-    if old_image and os.path.exists(old_image):
-        try:
-            os.remove(old_image)
-        except Exception:
-            pass
-            
-    # Set to null in DB
-    await users_collection.update_one(
-        {"_id": ObjectId(current_user["id"])},
-        {"$set": {"profile_image": None}}
-    )
     
-    return {"message": "Profile image removed successfully"}
+    if user and user.get("avatarUrl"):
+        old_image = user.get("avatarUrl")
+        
+        # Delete from Cloudinary if applicable
+        if "res.cloudinary.com" in old_image:
+            cloudinary.config(
+                cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME", ""),
+                api_key=os.getenv("CLOUDINARY_API_KEY", ""),
+                api_secret=os.getenv("CLOUDINARY_API_SECRET", "")
+            )
+            try:
+                parts = old_image.split("/")
+                if "careerpilot" in parts:
+                    idx = parts.index("careerpilot")
+                    public_id = "/".join(parts[idx:]).split(".")[0]
+                    cloudinary.uploader.destroy(public_id)
+            except Exception as e:
+                logger.warning(f"Failed to delete Cloudinary image: {e}")
+                
+        await users_collection.update_one(
+            {"_id": ObjectId(current_user["id"])},
+            {"$unset": {"avatarUrl": "", "profile_image": ""}}
+        )
+        
+    return {"message": "Profile image deleted successfully"}

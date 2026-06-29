@@ -13,3 +13,4 @@ PyMuPDF
 python-docx
 python-multipart
 
+cloudinary
