@@ -4,7 +4,7 @@ import { useProfile } from '../context/ProfileContext';
 import { Link, useNavigate } from 'react-router-dom';
 
 function TopNavbar({ title }) {
-  const { name, profile_image, getInitials, loading, setProfile } = useProfile();
+  const { name, avatarUrl, getInitials, loading, setProfile } = useProfile();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [installPromptEvent, setInstallPromptEvent] = useState(null);
   const dropdownRef = useRef(null);
@@ -101,10 +101,10 @@ function TopNavbar({ title }) {
               <div className="animate-pulse h-9 w-9 rounded-full bg-slate-800 shadow-sm border-2 border-slate-700"></div>
             ) : (
               <>
-                {profile_image ? (
+                {avatarUrl ? (
                   <img
                     className="h-9 w-9 rounded-full object-cover border-2 border-slate-700 shadow-sm"
-                    src={profile_image}
+                    src={avatarUrl}
                     alt={name}
                   />
                 ) : (

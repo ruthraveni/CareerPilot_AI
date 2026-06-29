@@ -86,7 +86,7 @@ function ProfileSkeleton() {
 }
 
 function Profile() {
-  const { profile, setProfile, fetchProfile, getInitials } = useProfile();
+  const { profile, setProfile, fetchProfile, getInitials, avatarUrl } = useProfile();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -474,9 +474,9 @@ function Profile() {
                     src={previewImage}
                     alt="Uploading preview"
                   />
-                ) : profile_image && !imageError ? (
+                ) : avatarUrl && !imageError ? (
                   <img 
-                    src={profile_image} 
+                    src={avatarUrl} 
                     alt="Profile" 
                     className="w-full h-full object-cover"
                     onError={() => setImageError(true)}
@@ -508,7 +508,7 @@ function Profile() {
                 <>
                   <div className="fixed inset-0 z-30" onClick={() => setShowImageMenu(false)} />
                   <div className="absolute left-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-40 animate-slide-up">
-                    {!profile_image ? (
+                    {!avatarUrl ? (
                       <button
                         onClick={() => {
                           setShowImageMenu(false);

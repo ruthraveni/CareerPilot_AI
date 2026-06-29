@@ -17,7 +17,7 @@ import { useProfile } from '../context/ProfileContext';
 function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { name, email, role, profile_image, getInitials, loading, setProfile } = useProfile();
+  const { name, email, role, avatarUrl, getInitials, loading, setProfile } = useProfile();
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -93,8 +93,8 @@ function Sidebar() {
             </div>
           ) : (
             <>
-              {profile_image ? (
-                <img src={profile_image} className="h-9 w-9 rounded-full object-cover border border-slate-700 flex-shrink-0" alt={name} />
+              {avatarUrl ? (
+                <img src={avatarUrl} className="h-9 w-9 rounded-full object-cover border border-slate-700 flex-shrink-0" alt={name} />
               ) : (
                 <div className="h-9 w-9 rounded-full bg-indigo-600 border border-indigo-500 text-white flex items-center justify-center font-bold text-sm flex-shrink-0">
                   {getInitials(name)}
