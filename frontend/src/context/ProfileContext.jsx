@@ -35,7 +35,7 @@ export const ProfileProvider = ({ children }) => {
 
   const role = profile?.role || localStorage.getItem('user_role') || "user";
 
-  const profile_image = profile?.avatarUrl || null;
+  const profile_image = profile?.avatarUrl || localStorage.getItem('user_avatar') || null;
 
   // Global helper for generating initial avatars
   const getInitials = (fullName) => {

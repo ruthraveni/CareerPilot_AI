@@ -23,6 +23,7 @@ function Sidebar() {
     localStorage.removeItem('token');
     localStorage.removeItem('user_name');
     localStorage.removeItem('user_email');
+    localStorage.removeItem('user_avatar');
     setProfile(null);
     navigate('/login');
   };

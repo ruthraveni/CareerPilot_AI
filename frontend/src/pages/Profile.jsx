@@ -282,6 +282,9 @@ function Profile() {
         }
       });
       
+      if (res.data && res.data.avatarUrl) {
+        localStorage.setItem('user_avatar', res.data.avatarUrl);
+      }
       await fetchProfile(); // Refetch global profile
       setImageError(false);
       // Wait for fetchProfile to finish, then we could clear preview. But let's just leave it or clear it.
@@ -303,6 +306,7 @@ function Profile() {
     try {
       setSaveLoading(true);
       await api.delete('/profile/image');
+      localStorage.removeItem('user_avatar');
       await fetchProfile(); // Refetch global profile
       setImageError(false);
       toast.success('Profile image removed successfully!');
@@ -470,11 +474,11 @@ function Profile() {
                     src={previewImage}
                     alt="Uploading preview"
                   />
-                ) : profile.avatarUrl && !imageError ? (
-                  <img
-                    className="h-full w-full object-cover"
-                    src={profile.avatarUrl}
-                    alt="User avatar"
+                ) : profile_image && !imageError ? (
+                  <img 
+                    src={profile_image} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
                     onError={() => setImageError(true)}
                   />
                 ) : (
@@ -504,7 +508,7 @@ function Profile() {
                 <>
                   <div className="fixed inset-0 z-30" onClick={() => setShowImageMenu(false)} />
                   <div className="absolute left-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-40 animate-slide-up">
-                    {!profile.avatarUrl ? (
+                    {!profile_image ? (
                       <button
                         onClick={() => {
                           setShowImageMenu(false);

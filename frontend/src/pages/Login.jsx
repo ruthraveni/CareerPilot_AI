@@ -37,6 +37,7 @@ function Login() {
         localStorage.setItem('user_name', response.data.user.name || '');
         localStorage.setItem('user_email', response.data.user.email || '');
         localStorage.setItem('user_role', response.data.user.role || 'user');
+        localStorage.setItem('user_avatar', response.data.user.avatarUrl || '');
       }
       await fetchProfile();
       
