@@ -32,6 +32,8 @@ class ProfileUpdateRequest(BaseModel):
     certifications: Optional[List[str]] = None
     leetcodeSolved: Optional[int] = None
     hackathonsAttended: Optional[int] = None
+    avatarUrl: Optional[str] = None
+    profile_image: Optional[str] = None
 
 @router.get("")
 async def get_profile(current_user: dict = Depends(get_current_user)):
@@ -98,7 +100,8 @@ async def update_profile(request: ProfileUpdateRequest, current_user: dict = Dep
         "careerGoal", "collegeName", "department", "yearOfStudy", 
         "targetRole", "dreamCompany", "preferredDomain",
         "languages", "frameworks", "databases", "tools", "softSkills",
-        "certifications", "leetcodeSolved", "hackathonsAttended"
+        "certifications", "leetcodeSolved", "hackathonsAttended",
+        "avatarUrl", "profile_image"
     ]:
         if field in data and data[field] is not None:
             update_data[field] = data[field]
