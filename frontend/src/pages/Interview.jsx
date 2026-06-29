@@ -149,7 +149,14 @@ function Interview() {
       setTimeLeft(Number(timerLimit));
       setTimerActive(true);
     } catch (err) {
-      const message = err?.response?.data?.detail || 'Failed to start interview session.';
+      let message = 'Failed to start interview session.';
+      if (err?.response?.data?.detail) {
+        if (typeof err.response.data.detail === 'string') {
+          message = err.response.data.detail;
+        } else {
+          message = JSON.stringify(err.response.data.detail);
+        }
+      }
       toast.error(message);
     } finally {
       setLoading(false);
@@ -184,21 +191,23 @@ function Interview() {
       
       // Save stats
       setSubmittedAnswers(prev => [...prev, answerToSubmit]);
-      setScoresHistory(prev => [...prev, response.data.overall_score]);
-      setFeedbacksList(prev => [...prev, response.data]);
-      setFeedbackState(response.data);
       
-      // Replace questions array dynamically if adaptive list returned
-      if (response.data.questions) {
-        setQuestions(response.data.questions);
-      }
-
       if (response.data.is_last) {
         setFinalReport(response.data.final_report);
         setFinished(true);
+      } else {
+        toast.success(response.data.message || 'Answer saved successfully.');
+        handleNextQuestion();
       }
     } catch (err) {
-      const message = err?.response?.data?.detail || 'Failed to submit answer.';
+      let message = 'Failed to submit answer.';
+      if (err?.response?.data?.detail) {
+        if (typeof err.response.data.detail === 'string') {
+          message = err.response.data.detail;
+        } else {
+          message = JSON.stringify(err.response.data.detail);
+        }
+      }
       console.error('Submit answer error:', err);
       toast.error(message);
       setTimerActive(true);

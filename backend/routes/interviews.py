@@ -1200,7 +1200,7 @@ async def evaluate_gemini_answer(question_obj: dict, answer: str, interview: dic
             prompt=prompt,
             user_id="system",
             endpoint="/interview/evaluate_answer",
-            model_name="gemini-1.5-flash"
+            model_name="gemini-2.5-flash"
         )
         text = text.strip()
         
@@ -1262,7 +1262,7 @@ async def generate_final_report(questions: list, answers: list, company: str, ro
         return json.loads(text)
     except Exception as e:
         logger.error("Gemini final report synthesis failed, falling back: %s", e)
-        return generate_final_report_dynamically(questions, answers, feedbacks, company)
+        return generate_final_report_dynamically(questions, answers, [], company)
 
 @router.get("/health")
 async def health_check():
@@ -1282,45 +1282,52 @@ async def get_interviews(current_user: dict = Depends(get_current_user)):
 
 @router.post("/start")
 async def start_interview(request: InterviewStartRequest, current_user: dict = Depends(get_current_user)):
-    interviews_col = get_collection("interviews")
-    ai_settings_col = get_collection("ai_settings")
-    settings = await ai_settings_col.find_one({"user_id": current_user["id"]})
-    
-    if settings:
-        if settings.get("primary_target_role"):
-            request.role = settings["primary_target_role"]
-        if settings.get("primary_target_company"):
-            request.company = settings["primary_target_company"]
+    try:
+        interviews_col = get_collection("interviews")
+        ai_settings_col = get_collection("ai_settings")
+        settings = await ai_settings_col.find_one({"user_id": current_user["id"]})
+        
+        if settings:
+            if settings.get("primary_target_role"):
+                request.role = settings["primary_target_role"]
+            if settings.get("primary_target_company"):
+                request.company = settings["primary_target_company"]
+                
+        questions = await generate_gemini_questions(request.role, request.company, request.round_type, request.question_count, request.profile, settings)
+        
+        if not questions:
+            raise Exception("Failed to generate questions. Gemini API returned an empty list.")
             
-    questions = await generate_gemini_questions(request.role, request.company, request.round_type, request.question_count, request.profile, settings)
-    
-    first_diff = questions[0].get("difficulty", "easy") if isinstance(questions[0], dict) else "easy"
-    
-    users_col = get_collection("users")
-    user_record = await users_col.find_one({"_id": ObjectId(current_user["id"])})
-    user_name = user_record.get("name") if user_record else "Unknown"
-    
-    new_interview = {
-        "user_id": current_user["id"],
-        "user_name": user_name,
-        "role": request.role,
-        "company": request.company,
-        "round_type": request.round_type,
-        "question_count": request.question_count,
-        "timer": request.timer,
-        "status": "in_progress",
-        "questions": questions,
-        "answers": ["" for _ in range(request.question_count)],
-        "profile": request.profile,
-        "current_difficulty": first_diff,
-        "created_at": datetime.utcnow()
-    }
-    result = await interviews_col.insert_one(new_interview)
-    return {
-        "interview_id": str(result.inserted_id),
-        "questions": questions,
-        "timer": request.timer
-    }
+        first_diff = questions[0].get("difficulty", "easy") if isinstance(questions[0], dict) else "easy"
+        
+        users_col = get_collection("users")
+        user_record = await users_col.find_one({"_id": ObjectId(current_user["id"])})
+        user_name = user_record.get("name") if user_record else "Unknown"
+        
+        new_interview = {
+            "user_id": current_user["id"],
+            "user_name": user_name,
+            "role": request.role,
+            "company": request.company,
+            "round_type": request.round_type,
+            "question_count": request.question_count,
+            "timer": request.timer,
+            "status": "in_progress",
+            "questions": questions,
+            "answers": ["" for _ in range(request.question_count)],
+            "profile": request.profile,
+            "current_difficulty": first_diff,
+            "created_at": datetime.utcnow()
+        }
+        result = await interviews_col.insert_one(new_interview)
+        return {
+            "interview_id": str(result.inserted_id),
+            "questions": questions,
+            "timer": request.timer
+        }
+    except Exception as e:
+        logger.exception("Failed to start interview session")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/evaluate")
 async def evaluate_answer(request: AnswerEvaluationRequest, current_user: dict = Depends(get_current_user)):
