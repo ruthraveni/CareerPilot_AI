@@ -967,13 +967,34 @@ def generate_final_report_dynamically(questions: list, answers: list, feedbacks:
 
 async def generate_gemini_questions(role: str, company: str, round_type: str, question_count: int, profile: Optional[dict] = None, ai_settings: Optional[dict] = None) -> list:
     """Generate high-quality interview questions utilizing Gemini and validation retry loops."""
-    profile_info = ""
+    profile_info_str = ""
     if profile:
-        skills = ", ".join(profile.get("skills", []))
-        goal = profile.get("career_goal", "")
-        resume = profile.get("resume_text", "")[:200]
-        profile_info = f"Candidate Profile: Skills: {skills}. Goal: {goal}. Resume: {resume}."
+        name = profile.get("name") or "Not provided"
+        college = profile.get("collegeName") or "Not provided"
+        dept = profile.get("department") or "Not provided"
+        year = profile.get("yearOfStudy") or "Not provided"
+        target = profile.get("targetRole") or "Not provided"
+        dream = profile.get("dreamCompany") or "Not provided"
+        domain = profile.get("preferredDomain") or "Not provided"
         
+        langs = ", ".join(profile.get("languages") or [])
+        frameworks = ", ".join(profile.get("frameworks") or [])
+        databases = ", ".join(profile.get("databases") or [])
+        tools = ", ".join(profile.get("tools") or [])
+        soft = ", ".join(profile.get("softSkills") or [])
+        skills = f"Languages: {langs}, Frameworks: {frameworks}, DBs: {databases}, Tools: {tools}, Soft Skills: {soft}"
+        
+        certs = ", ".join(profile.get("certifications") or [])
+        
+        profile_info_str = (
+            f"Candidate Profile Context:\n"
+            f"- Name: {name}\n"
+            f"- Education: {college}, {dept}, {year}\n"
+            f"- Career Goal: Target Role: {target}, Dream Company: {dream}, Domain: {domain}\n"
+            f"- Skills: {skills}\n"
+            f"- Certifications: {certs}\n"
+            "Use this profile context to personalize the interview questions where appropriate, making them relevant to the candidate's skills and background."
+        )
     round_clean = round_type.replace(" Round", "").strip()
     
     # Pre-generate difficulty and number configurations for each index
