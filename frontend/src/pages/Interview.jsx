@@ -64,12 +64,10 @@ function Interview() {
     javascript: "function solve() {\n\n}\n\nsolve();"
   };
 
-  // Auto-save source code
-  useEffect(() => {
-    if (sourceCode) {
-      localStorage.setItem(`interview_code_${interviewId || 'draft'}_q${currentIdx}`, sourceCode);
-    }
-  }, [sourceCode, interviewId, currentIdx]);
+  const handleCodeChange = (newVal) => {
+    setSourceCode(newVal);
+    localStorage.setItem(`interview_code_${interviewId || 'draft'}_q${currentIdx}`, newVal);
+  };
 
   useEffect(() => {
     const savedCode = localStorage.getItem(`interview_code_${interviewId || 'draft'}_q${currentIdx}`);
@@ -91,7 +89,9 @@ function Interview() {
       }
     }
     setSelectedLanguage(newLang);
-    setSourceCode(languageTemplates[newLang] || '');
+    const template = languageTemplates[newLang] || '';
+    setSourceCode(template);
+    localStorage.setItem(`interview_code_${interviewId || 'draft'}_q${currentIdx}`, template);
   };
 
   const mapRoundType = (round) => {
@@ -852,7 +852,7 @@ function Interview() {
                         value={sourceCode}
                         language={selectedLanguage === 'c' || selectedLanguage === 'cpp' ? 'cpp' : selectedLanguage}
                         placeholder="Please enter your code."
-                        onChange={(evn) => setSourceCode(evn.target.value)}
+                        onChange={(evn) => handleCodeChange(evn.target.value)}
                         padding={15}
                         style={{
                           fontFamily: 'ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace',
