@@ -862,15 +862,23 @@ def generate_final_report_dynamically(questions: list, answers: list, feedbacks:
                 "recommended_next_companies": ["TCS", "Infosys"]
             }
         else:
-            return {
-                "readiness_percentage": 72,
-                "strengths": ["Completed all interview sections", "Clear structure of responses"],
-                "weaknesses": ["Technical explanations could be deeper"],
-                "improvement_areas": ["Incorporate more architectural detail", "Analyze alternative design options"],
-                "recommended_topics": ["STAR Method Communication", "Data Structures & Algorithms"],
-                "company_fit_analysis": f"Demonstrates good potential and core competencies required for {company}.",
-                "recommended_next_companies": ["TCS", "Cognizant"]
-            }
+            # Dynamically grade each answer locally to populate feedbacks list
+            feedbacks = []
+            for i in range(len(questions)):
+                q_obj = questions[i] if isinstance(questions[i], dict) else {"text": str(questions[i]), "type": "descriptive"}
+                ans_data = answers[i] if i < len(answers) else ""
+                ans_text = ""
+                if isinstance(ans_data, dict):
+                    ans_text = ans_data.get("user_answer") or ""
+                    if ans_data.get("source_code"):
+                        ans_text += f"\nCode: {ans_data.get('source_code')}"
+                    if ans_data.get("voice_transcript"):
+                        ans_text += f"\nTranscript: {ans_data.get('voice_transcript')}"
+                elif isinstance(ans_data, str):
+                    ans_text = ans_data
+                
+                evaluated = evaluate_answer_dynamically(q_obj, ans_text)
+                feedbacks.append(evaluated)
         
     avg_tech = sum(f.get("technical_score", 0) for f in feedbacks) / len(feedbacks)
     avg_comm = sum(f.get("communication_score", 0) for f in feedbacks) / len(feedbacks)
@@ -1278,8 +1286,9 @@ async def generate_final_report(questions: list, answers: list, company: str, ro
                 
         prompt = (
             f"{context}\n"
+            f"You are a strict and realistic professional evaluator. Evaluate the candidate's answers based on their technical correctness, clarity, completeness, and structural logic. "
             f"Generate a raw JSON object with these exact keys:\n"
-            f"  - readiness_percentage (0-100 integer, overall score)\n"
+            f"  - readiness_percentage (0-100 integer, overall score. Assign realistic scores: 90+ only for near-perfect answers, 70-89 for average or good answers, 40-69 for weak/partially complete answers, and below 40 if answers are extremely brief or incorrect. Do not cluster scores around 72%.)\n"
             f"  - strengths (array of 2-3 short strings)\n"
             f"  - weaknesses (array of 2-3 short strings)\n"
             f"  - improvement_areas (array of 2-3 short strings)\n"
