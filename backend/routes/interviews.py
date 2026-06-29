@@ -985,6 +985,7 @@ async def generate_gemini_questions(role: str, company: str, round_type: str, qu
         skills = f"Languages: {langs}, Frameworks: {frameworks}, DBs: {databases}, Tools: {tools}, Soft Skills: {soft}"
         
         certs = ", ".join(profile.get("certifications") or [])
+        projects = ", ".join(profile.get("projects") or [])
         
         profile_info_str = (
             f"Candidate Profile Context:\n"
@@ -992,6 +993,7 @@ async def generate_gemini_questions(role: str, company: str, round_type: str, qu
             f"- Education: {college}, {dept}, {year}\n"
             f"- Career Goal: Target Role: {target}, Dream Company: {dream}, Domain: {domain}\n"
             f"- Skills: {skills}\n"
+            f"- Projects: {projects}\n"
             f"- Certifications: {certs}\n"
             "Use this profile context to personalize the interview questions where appropriate, making them relevant to the candidate's skills and background."
         )
@@ -1120,6 +1122,8 @@ async def generate_gemini_questions(role: str, company: str, round_type: str, qu
         f"{question_format_instruction}\n"
         f"Return the output as a raw JSON array of objects. Do not include markdown formatting or json block wrappers."
     )
+    
+    logger.info(f"Generated Interview Prompt:\n{prompt}")
     
     generated = []
     if GEMINI_API_KEY:
