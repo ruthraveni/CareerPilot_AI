@@ -104,6 +104,9 @@ class GeminiProvider:
         if not self.api_key:
             raise AIAuthenticationError("Missing GEMINI_API_KEY")
             
+        if model_name == "gemini-2.5-flash":
+            model_name = "gemini-1.5-flash"
+            
         model = genai.GenerativeModel(model_name)
         # Using asyncio.wait_for to enforce timeout on the async call
         try:
