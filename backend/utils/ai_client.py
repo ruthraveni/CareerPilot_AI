@@ -43,16 +43,20 @@ class AIAuthenticationError(AIException):
         super().__init__(message, 401)
 
 class AIRateLimitError(AIException):
-    def __init__(self, message="AI rate limit or quota exceeded. Please try again later."):
+    def __init__(self, message="Daily AI limit reached. Please try again later."):
         super().__init__(message, 429)
 
 class AITimeoutError(AIException):
-    def __init__(self, message="The AI service timed out. Please try again."):
+    def __init__(self, message="The AI service is taking longer than expected."):
         super().__init__(message, 408)
 
 class AIServiceUnavailableError(AIException):
-    def __init__(self, message="The AI service is temporarily unavailable."):
+    def __init__(self, message="Unable to connect to the AI service."):
         super().__init__(message, 503)
+
+class AIInvalidModelError(AIException):
+    def __init__(self, message="AI configuration error. Please contact the administrator."):
+        super().__init__(message, 404)
 
 def check_circuit_breaker():
     if health_state.circuit_open:
@@ -104,9 +108,6 @@ class GeminiProvider:
         if not self.api_key:
             raise AIAuthenticationError("Missing GEMINI_API_KEY")
             
-        if model_name == "gemini-2.5-flash":
-            model_name = "gemini-1.5-flash"
-            
         model = genai.GenerativeModel(model_name)
         # Using asyncio.wait_for to enforce timeout on the async call
         try:
@@ -123,8 +124,14 @@ class GeminiProvider:
             err_str = str(e).lower()
             if "401" in err_str or "api_key_invalid" in err_str:
                 raise AIAuthenticationError()
-            if "429" in err_str or "quota" in err_str:
+            if "404" in err_str or "not found" in err_str or "not_found" in err_str:
+                raise AIInvalidModelError()
+            if "429" in err_str or "quota" in err_str or "limit" in err_str:
                 raise AIRateLimitError()
+            if "timeout" in err_str or "deadline" in err_str:
+                raise AITimeoutError()
+            if any(term in err_str for term in ["network", "connection", "dns", "unreachable", "connect", "http"]):
+                raise AIServiceUnavailableError()
             raise AIException(f"Internal AI provider error: {str(e)}", 500)
 
 class UnifiedAIClient:
@@ -165,6 +172,12 @@ class UnifiedAIClient:
                 log_structured(req_id, user_id, endpoint, model_name, start_time, error_type="AIAuthenticationError", error_msg=e.message)
                 raise HTTPException(status_code=e.status_code, detail=e.message)
                 
+            except AIInvalidModelError as e:
+                # Do not retry model config errors
+                record_failure()
+                log_structured(req_id, user_id, endpoint, model_name, start_time, error_type="AIInvalidModelError", error_msg=e.message)
+                raise HTTPException(status_code=e.status_code, detail=e.message)
+                
             except (AIRateLimitError, AITimeoutError, AIException) as e:
                 if attempt < AI_MAX_RETRIES - 1:
                     delay = AI_RETRY_DELAY * (2 ** attempt)
@@ -176,6 +189,6 @@ class UnifiedAIClient:
                     raise HTTPException(status_code=e.status_code, detail=e.message)
                     
         # Should not reach here
-        raise HTTPException(status_code=503, detail="The AI service is temporarily unavailable.")
+        raise HTTPException(status_code=503, detail="Unable to connect to the AI service.")
 
 ai_client = UnifiedAIClient()
