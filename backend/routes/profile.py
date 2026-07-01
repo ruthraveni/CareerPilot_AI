@@ -7,6 +7,9 @@ from bson import ObjectId
 import os
 import time
 import re
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
