@@ -52,9 +52,30 @@ from config.database import get_collection, init_db_indexes
 from bson import ObjectId
 from routes.auth import get_current_user
 
+import cloudinary
+import logging
+
 @app.on_event("startup")
 async def startup_event():
     await init_db_indexes()
+    
+    # Initialize Cloudinary
+    cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME")
+    api_key = os.getenv("CLOUDINARY_API_KEY")
+    api_secret = os.getenv("CLOUDINARY_API_SECRET")
+    
+    if cloud_name and api_key and api_secret:
+        try:
+            cloudinary.config(
+                cloud_name=cloud_name,
+                api_key=api_key,
+                api_secret=api_secret
+            )
+            logging.info("Cloudinary successfully initialized on startup.")
+        except Exception as ce:
+            logging.error(f"Failed to initialize Cloudinary on startup: {ce}")
+    else:
+        logging.warning("Cloudinary credentials missing from environment. Image uploads will be disabled.")
 
 @app.put("/api/update-profile", tags=["Profile"])
 async def update_profile_direct(request: dict, current_user: dict = Depends(get_current_user)):
