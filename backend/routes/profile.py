@@ -151,22 +151,36 @@ async def upload_image(file: UploadFile = File(...), current_user: dict = Depend
         cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME")
         api_key = os.getenv("CLOUDINARY_API_KEY")
         api_secret = os.getenv("CLOUDINARY_API_SECRET")
+        
+        # Log metadata
+        masked_api_key = f"...{api_key[-4:]}" if api_key and len(api_key) >= 4 else "None"
+        api_secret_loaded = "Yes" if api_secret else "No"
+        sdk_version = getattr(cloudinary, "VERSION", "unknown")
+        
+        logger.info(
+            "Cloudinary credentials verify - Cloud Name: %s, API Key (last 4): %s, API Secret Loaded: %s, SDK Version: %s",
+            cloud_name, masked_api_key, api_secret_loaded, sdk_version
+        )
+        
         if not cloud_name or not api_key or not api_secret:
-            logger.error("Cloudinary credentials are not configured on the server. CLOUDINARY_CLOUD_NAME: %s, CLOUDINARY_API_KEY: %s, CLOUDINARY_API_SECRET: %s", bool(cloud_name), bool(api_key), bool(api_secret))
+            logger.error("Cloudinary credentials are not configured on the server.")
             raise HTTPException(status_code=400, detail="Cloudinary credentials are not configured on the server.")
             
         # Configure Cloudinary
         cloudinary.config(
             cloud_name=cloud_name,
             api_key=api_key,
-            api_secret=api_secret
+            api_secret=api_secret,
+            secure=True
         )
         
         # Cloudinary upload
         logger.info("Cloudinary upload: Uploading image to Cloudinary for user_id=%s", current_user["id"])
         try:
+            # Reset file pointer since we read the file for validation
+            await file.seek(0)
             result = cloudinary.uploader.upload(
-                contents,
+                file.file,
                 folder="careerpilot/avatars",
                 public_id=f"user_{current_user['id']}_{int(time.time())}",
                 overwrite=True,
