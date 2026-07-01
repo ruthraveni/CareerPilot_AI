@@ -60,16 +60,17 @@ async def startup_event():
     await init_db_indexes()
     
     # Initialize Cloudinary
-    cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME")
-    api_key = os.getenv("CLOUDINARY_API_KEY")
-    api_secret = os.getenv("CLOUDINARY_API_SECRET")
+    cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME", "").strip().strip("'").strip('"')
+    api_key = os.getenv("CLOUDINARY_API_KEY", "").strip().strip("'").strip('"')
+    api_secret = os.getenv("CLOUDINARY_API_SECRET", "").strip().strip("'").strip('"')
     
     if cloud_name and api_key and api_secret:
         try:
             cloudinary.config(
                 cloud_name=cloud_name,
                 api_key=api_key,
-                api_secret=api_secret
+                api_secret=api_secret,
+                secure=True
             )
             logging.info("Cloudinary successfully initialized on startup.")
         except Exception as ce:

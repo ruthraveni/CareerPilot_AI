@@ -147,10 +147,10 @@ async def upload_image(file: UploadFile = File(...), current_user: dict = Depend
             logger.error("File size too large: %s bytes", size)
             raise HTTPException(status_code=400, detail="Image size exceeds 5 MB limit")
             
-        # Verify Cloudinary environment variables
-        cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME")
-        api_key = os.getenv("CLOUDINARY_API_KEY")
-        api_secret = os.getenv("CLOUDINARY_API_SECRET")
+        # Verify Cloudinary environment variables and strip quotes/whitespace
+        cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME", "").strip().strip("'").strip('"')
+        api_key = os.getenv("CLOUDINARY_API_KEY", "").strip().strip("'").strip('"')
+        api_secret = os.getenv("CLOUDINARY_API_SECRET", "").strip().strip("'").strip('"')
         
         # Log metadata
         masked_api_key = f"...{api_key[-4:]}" if api_key and len(api_key) >= 4 else "None"
