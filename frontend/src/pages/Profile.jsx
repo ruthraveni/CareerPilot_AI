@@ -117,8 +117,7 @@ function Profile() {
   const [showImageMenu, setShowImageMenu] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   
-  // Toast notifications
-  const [toast, setToast] = useState('');
+
 
   const loadData = async () => {
     try {
@@ -205,13 +204,7 @@ function Profile() {
     }
   }, [blocker]);
 
-  // Display Toast message
-  const showToast = (message) => {
-    setToast(message);
-    setTimeout(() => {
-      setToast('');
-    }, 4000);
-  };
+
 
   // Save changes to backend
   const handleSave = async () => {
@@ -1214,13 +1207,7 @@ function Profile() {
 
       </div>
 
-      {/* Success Notification Toast */}
-      {toast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-800 px-4 py-3 rounded-2xl shadow-xl transition-all duration-300 animate-slide-up">
-          <CheckCircle className="h-5 w-5 text-emerald-600" />
-          <span className="text-sm font-semibold">{toast}</span>
-        </div>
-      )}
+
     </Layout>
   );
 }
